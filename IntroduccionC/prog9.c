@@ -8,7 +8,7 @@ struct mi_estructura {
 };
 
 // declaracion de funcion
-void pasoValor(struct mi_estructura estructura_pila);
+void pasoReferencia(struct mi_estructura *estructura_pila);
 
 int main()
 {
@@ -21,15 +21,15 @@ int main()
   printf("\nDireccion estructura: %p\n", &mia);
   printf("Direccion campo vector en estructura: %p\n\n", mia.v);
 
-  pasoValor(mia);
+  pasoReferencia(&mia);
 }
 
-void pasoValor(struct mi_estructura estructura_pila)
+void pasoReferencia(struct mi_estructura *estructura_pila)
 {
-  printf("Estructura campo 1: %c\n", estructura_pila.c);
-  printf("Estructura campo 2: %d\n", estructura_pila.i);
-  printf("Estructura campo 3: %d\n\n", estructura_pila.v[1]);
+  printf("Estructura campo 1: %c\n", estructura_pila->c);
+  printf("Estructura campo 2: %d\n", estructura_pila->i);
+  printf("Estructura campo 3: %d\n\n", estructura_pila->v[1]);
 
-  printf("Direccion estructura en funcion: %p\n", &estructura_pila);
-  printf("Direccion campo vector en estructura en funcion: %p\n\n", estructura_pila.v);
+  printf("Direccion estructura en funcion: %p\n", estructura_pila);
+  printf("Direccion campo vector en estructura en funcion: %p\n\n", estructura_pila->v);
 }

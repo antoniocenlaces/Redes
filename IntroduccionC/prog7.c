@@ -22,6 +22,7 @@ main()
   printf("v contiene: %s\n", v);
 
   // v = "texto modificado"; // funcionaria?
+
   strcpy(v, "texto modificado");
 
   printf("\ndespues del strcpy:\n");

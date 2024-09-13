@@ -1,12 +1,11 @@
-#include <stdio.h>  /* standard input/output library */
-
+#include <stdio.h>
 /* Esto es una DECLARACION de una funcion,
    que imprime un mensaje, y que devuelve "void"
    (en C todas las funciones devuelven algo)
  */
 void funcion()
 {
-  printf( "\nHello, World, Again");
+  printf( "\nHello, World, Again\n");
 } 
 
 void main()
