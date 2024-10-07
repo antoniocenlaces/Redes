@@ -41,7 +41,7 @@ void printsockaddr(struct sockaddr_storage * saddr)
     {
         printf("\tFamilia de direcciones: ");
         fflush(stdout);
-        if (saddr->ss_family == AF_INET6)
+        if (saddr->ss_family == AF_INET6) // ss_family especifica la familia de direcciones IPv4 o IPv6
         {   // IPv6
             printf("IPv6\n");
             // apuntamos a la estructura con saddr_ipv6 (cast evita warning),
@@ -56,9 +56,9 @@ void printsockaddr(struct sockaddr_storage * saddr)
         else if (saddr->ss_family == AF_INET)
         {   // IPv4
             printf("IPv4\n");
-            saddr_ipv4 = ;
-            addr = ;
-            port = ;
+            saddr_ipv4 = (struct sockaddr_in *) saddr;
+            addr = &(saddr_ipv4->sin_addr);
+            port = ntohs(saddr_ipv4->sin_port);
         }
         else
         {
@@ -84,11 +84,13 @@ void printsockaddr(struct sockaddr_storage * saddr)
  * @param f_verbose    Si es distinto de 0, se muestra información extra.
  * @return Puntero a la estructura de direcciones creada en memoria dinámica.
  */
+
+
 struct addrinfo* obtener_struct_direccion(char *dir_servidor, char *servicio, char f_verbose)
 {
-    struct addrinfo hints,     // Variable para especificar la solicitud
-                    *servinfo, // Puntero para respuesta de getaddrinfo()
-                    *direccion;// Puntero para recorrer la lista de
+    struct addrinfo hints;     // Variable para especificar la solicitud
+    struct addrinfo *servinfo; // Puntero para respuesta de getaddrinfo()
+    struct addrinfo *direccion;// Puntero para recorrer la lista de
                                // direcciones de servinfo
     int status;     // Finalización correcta o no de la llamada getaddrinfo()
     int numdir = 1; // Contador de estructuras de direcciones en la
@@ -107,7 +109,7 @@ struct addrinfo* obtener_struct_direccion(char *dir_servidor, char *servicio, ch
 
     // especificamos la familia de direcciones con la que queremos trabajar:
     // AF_UNSPEC, AF_INET (IPv4), AF_INET6 (IPv6), etc.
-    hints.ai_family = ;
+    hints.ai_family = AF_INET;
 
     if (f_verbose)
     {
@@ -124,7 +126,7 @@ struct addrinfo* obtener_struct_direccion(char *dir_servidor, char *servicio, ch
 
     // especificamos el tipo de socket deseado:
     // SOCK_STREAM (TCP), SOCK_DGRAM (UDP), etc.
-    hints.ai_socktype = ;
+    hints.ai_socktype = SOCK_STREAM;
 
     if (f_verbose)
     {
@@ -153,7 +155,7 @@ struct addrinfo* obtener_struct_direccion(char *dir_servidor, char *servicio, ch
 
         // especificar flag para que la IP se rellene con lo necesario para hacer bind
         // consultar documentación con: 'man getaddrinfo')
-        hints.ai_flags = ;
+        hints.ai_flags = AI_CANONNAME;
     }
     if (f_verbose) printf("\tServicio/puerto: %s\n", servicio);
 
