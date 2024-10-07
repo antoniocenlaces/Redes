@@ -19,7 +19,7 @@ int main( int argc , char * argv[] ) {
         exit(0);
     }
 
-    listenfd = socket(AF_INET, SOCK_STREAM, 0);
+    listenfd = socket(AF_INET, SOCK_STREAM, 0); // Establece un socket TCP en ipv4
     servaddr.sin_family      = AF_INET;
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     servaddr.sin_port        = htons(atoi(argv[1]));
