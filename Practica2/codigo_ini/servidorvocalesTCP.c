@@ -46,7 +46,7 @@ int establecer_servicio(struct addrinfo *servinfo, char f_verbose)
         printf("Creando el socket (socket)... ");
         fflush(stdout);
     }
-    sock = socket(, , );
+    sock = socket(ervinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
     if (sock < 0)
     {
         perror("Error en la llamada socket: No se pudo crear el socket");
@@ -63,7 +63,7 @@ int establecer_servicio(struct addrinfo *servinfo, char f_verbose)
         printf("Asociando socket a puerto (bind)... ");
         fflush(stdout);
     }
-    if (bind(, , ) < 0)
+    if (bind(sock, (struct socaddr *) servinfo->ai_addr, sizeof(servinfo->ai_addr)) < 0)
     {
         perror("Error asociando el socket");
         exit(1);
@@ -76,7 +76,7 @@ int establecer_servicio(struct addrinfo *servinfo, char f_verbose)
         printf("Permitiendo conexiones entrantes (listen)... ");
         fflush(stdout);
     }
-    listen(, 5);
+    listen(sock, 5);
     // 5 es el número máximo de conexiones pendientes en algunos sistemas
     if (f_verbose) printf("hecho\n");
 
@@ -156,7 +156,7 @@ int main(int argc, char * argv[])
 
         // acepta la conexión
         clen = sizeof caddr;
-        if ((conn = accept(, (struct sockaddr *)&caddr, &clen)) < 0)
+        if ((conn = accept(sock, (struct sockaddr *)&caddr, &clen)) < 0)
         {
             perror("Error al aceptar una nueva conexión");
             exit(1);
@@ -169,7 +169,7 @@ int main(int argc, char * argv[])
         // bucle de contar vocales
         num = 0;
         do {
-            if ((readbytes = recv(, , BUFF_SIZE,0)) < 0)
+            if ((readbytes = recv(sock, msg, BUFF_SIZE,0)) < 0)
             {
                 perror("Error de lectura en el socket");
                 exit(1);
@@ -189,7 +189,7 @@ int main(int argc, char * argv[])
         netNum = htonl(num);  // convierte el entero largo sin signo hostlong
         // desde el orden de bytes del host al de la red
         // envia al cliente el número de vocales recibidas:
-        if (send(, &netNum, sizeof netNum,0) < 0)
+        if (send(sock, &netNum, sizeof netNum,0) < 0)
         {
             perror("Error de escritura en el socket");
             exit(1);
@@ -197,7 +197,7 @@ int main(int argc, char * argv[])
         if (f_verbose) printf("Enviado número de vocales contadas al cliente\n");
 
         // cierra la conexión con el cliente
-        close();
+        close(sock);
         if (f_verbose) printf("Cerrada la conexión con el cliente\n");
     }
 
