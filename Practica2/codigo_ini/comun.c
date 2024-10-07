@@ -155,7 +155,7 @@ struct addrinfo* obtener_struct_direccion(char *dir_servidor, char *servicio, ch
 
         // especificar flag para que la IP se rellene con lo necesario para hacer bind
         // consultar documentación con: 'man getaddrinfo')
-        hints.ai_flags = AI_CANONNAME;
+        hints.ai_flags = AI_PASSIVE;
     }
     if (f_verbose) printf("\tServicio/puerto: %s\n", servicio);
 
