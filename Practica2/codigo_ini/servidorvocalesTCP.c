@@ -46,7 +46,7 @@ int establecer_servicio(struct addrinfo *servinfo, char f_verbose)
         printf("Creando el socket (socket)... ");
         fflush(stdout);
     }
-    sock = socket(ervinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
+    sock = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
     if (sock < 0)
     {
         perror("Error en la llamada socket: No se pudo crear el socket");
