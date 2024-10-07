@@ -109,7 +109,7 @@ struct addrinfo* obtener_struct_direccion(char *dir_servidor, char *servicio, ch
 
     // especificamos la familia de direcciones con la que queremos trabajar:
     // AF_UNSPEC, AF_INET (IPv4), AF_INET6 (IPv6), etc.
-    hints.ai_family = AF_INET;
+    hints.ai_family = AF_UNSPEC;
 
     if (f_verbose)
     {
