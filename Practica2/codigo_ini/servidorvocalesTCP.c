@@ -189,7 +189,7 @@ int main(int argc, char * argv[])
         netNum = htonl(num);  // convierte el entero largo sin signo hostlong
         // desde el orden de bytes del host al de la red
         // envia al cliente el número de vocales recibidas:
-        if (send(sock, &netNum, sizeof netNum,0) < 0)
+        if (send(conn, &netNum, sizeof netNum,0) < 0)
         {
             perror("Error de escritura en el socket");
             exit(1);
