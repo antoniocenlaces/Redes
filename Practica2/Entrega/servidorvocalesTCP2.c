@@ -125,7 +125,7 @@ int main(int argc, char * argv[])
     uint32_t num, netNum;       // contador de vocales en formato local y de red
     struct sockaddr_storage caddr; // dirección del cliente
     socklen_t clen;             // longitud de la dirección
-    int pidh, err;               // para recoger el pid del proceso hijo y el potencial valor de error
+    int pidh;               // para recoger el pid del proceso hijo y el potencial valor de error
 
     // verificación del número de parámetros:
     if (argc != 2)
