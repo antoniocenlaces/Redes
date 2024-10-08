@@ -187,7 +187,7 @@ int main(int argc, char * argv[])
     }
 
     // recibe del servidor el número de vocales recibidas:
-    recvbytes = recv(sock, &num, 4, 0);
+    recvbytes = recv(sock, &num, sizeof num, 0);
     if (recvbytes != sizeof num)
     {
         printf("Recibidos %lu bytes en lugar de los %lu esperados", recvbytes, sizeof num);

@@ -156,6 +156,7 @@ int main(int argc, char * argv[])
         printf("\nEsperando conexión (pulsa <Ctrl+c> para finalizar la ejecución)...\n");
 
         // acepta la conexión
+        // en caddr la llamada accept() en caso de éxito me devuelve la dirección del cliente
         clen = sizeof caddr;
         if ((conn = accept(sock, (struct sockaddr *)&caddr, &clen)) < 0)
         {
