@@ -22,7 +22,7 @@
 #include <netinet/in.h>
 
 #include "comun.h"
-
+#include "error.h"
 // definición de constantes
 #define BUFF_SIZE 1000 ///< Tamaño del buffer para las cadenas de texto.
 
@@ -125,6 +125,7 @@ int main(int argc, char * argv[])
     uint32_t num, netNum;       // contador de vocales en formato local y de red
     struct sockaddr_storage caddr; // dirección del cliente
     socklen_t clen;             // longitud de la dirección
+    int pidh, err;               // para recoger el pid del proceso hijo y el potencial valor de error
 
     // verificación del número de parámetros:
     if (argc != 2)
@@ -171,38 +172,48 @@ int main(int argc, char * argv[])
         // bucle de contar vocales
         // con un fork() podriamos hacer que el servidor siga escuchando entradas
         // el hijo ejecutaría el siguiente bucle
-        num = 0;
-        do {
-            if ((readbytes = recv(conn, msg, BUFF_SIZE,0)) < 0)
+        pidh=fork();
+        switch(pidh)
+        {
+        case -1:
+            syserr("fork");
+            break;
+        case 0: // Código del hijo
+            num = 0;
+            do {
+                if ((readbytes = recv(conn, msg, BUFF_SIZE,0)) < 0)
+                {
+                    perror("Error de lectura en el socket");
+                    exit(1);
+                }
+                printf("Mensaje recibido del cliente: "); fflush(stdout);
+                write(1, msg, readbytes);
+                // muestra en pantalla (salida estándar 1) el mensaje recibido
+                // evitamos usar printf por si lo recibido no es texto acabado con \0
+                num += countVowels(msg, readbytes);
+                printf("Vocales contadas hasta el momento: %d\n",num);
+
+            // condición de final: haber recibido 0 bytes (fin de fichero alcanzado)
+            } while (readbytes > 0);
+
+            printf("\nSocket cerrado para lectura\n");
+            printf("Contadas %d vocales\n", num);  // muestra las vocales recibidas
+            netNum = htonl(num);  // convierte el entero largo sin signo hostlong
+            // desde el orden de bytes del host al de la red
+            // envia al cliente el número de vocales recibidas:
+            if (send(conn, &netNum, sizeof netNum,0) < 0)
             {
-                perror("Error de lectura en el socket");
+                perror("Error de escritura en el socket");
                 exit(1);
             }
-            printf("Mensaje recibido del cliente: "); fflush(stdout);
-            write(1, msg, readbytes);
-            // muestra en pantalla (salida estándar 1) el mensaje recibido
-            // evitamos usar printf por si lo recibido no es texto acabado con \0
-            num += countVowels(msg, readbytes);
-            printf("Vocales contadas hasta el momento: %d\n",num);
+            if (f_verbose) printf("Enviado número de vocales contadas al cliente\n");
 
-        // condición de final: haber recibido 0 bytes (fin de fichero alcanzado)
-        } while (readbytes > 0);
-
-        printf("\nSocket cerrado para lectura\n");
-        printf("Contadas %d vocales\n", num);  // muestra las vocales recibidas
-        netNum = htonl(num);  // convierte el entero largo sin signo hostlong
-        // desde el orden de bytes del host al de la red
-        // envia al cliente el número de vocales recibidas:
-        if (send(conn, &netNum, sizeof netNum,0) < 0)
-        {
-            perror("Error de escritura en el socket");
-            exit(1);
+            // cierra la conexión con el cliente
+            close(conn);
+            if (f_verbose) printf("Cerrada la conexión con el cliente\n");
+            exit(0);
+            break;
         }
-        if (f_verbose) printf("Enviado número de vocales contadas al cliente\n");
-
-        // cierra la conexión con el cliente
-        close(conn);
-        if (f_verbose) printf("Cerrada la conexión con el cliente\n");
     }
 
     // código inalcanzable.
