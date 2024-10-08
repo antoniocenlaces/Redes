@@ -63,7 +63,7 @@ int establecer_servicio(struct addrinfo *servinfo, char f_verbose)
         printf("Asociando socket a puerto (bind)... ");
         fflush(stdout);
     }
-    if (bind(sock, (struct sockaddr *) servinfo->ai_addr, servinfo->ai_addrlen)) < 0)
+    if (bind(sock, (struct sockaddr *) servinfo->ai_addr, servinfo->ai_addr) < 0)
     {
         perror("Error asociando el socket");
         exit(1);
