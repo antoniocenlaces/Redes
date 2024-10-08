@@ -235,12 +235,11 @@ int main(int argc, char * argv[])
 
 // Función de captura de SIGCLD para cuando muere un hijo
 void captura(int n) {
-  int i;
   void (*ff)(int);
   /* El programa puede bloquearse si se captura SIGCLD de hijo asincrono y
 	llega SIGCLD de hijo sincrono antes de la siguiente instruccion */
 
   ff=signal(SIGCLD,captura);	/* capturar senial SIGCLD */
   if (ff == MAL) syserr("signal");
-  i=wait(NULL);
+  wait(NULL);
 }
