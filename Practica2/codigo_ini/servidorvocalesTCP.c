@@ -134,10 +134,11 @@ int main(int argc, char * argv[])
         exit(1); // finaliza el programa indicando salida incorrecta (1)
     }
 
-    // obtiene estructura de direccion
+    // obtiene estructura de direccion para el servidor
     servinfo = obtener_struct_direccion(NULL, argv[1], f_verbose);
 
     // crea un extremo de la comunicación. Devuelve el descriptor del socket
+    // sock contiene el identificador del socket abierto por el servidor
     sock = establecer_servicio(servinfo, f_verbose);
 
     // hay que liberar la memoria dinámica usada para la dirección
@@ -197,7 +198,7 @@ int main(int argc, char * argv[])
         if (f_verbose) printf("Enviado número de vocales contadas al cliente\n");
 
         // cierra la conexión con el cliente
-        close(sock);
+        close(conn);
         if (f_verbose) printf("Cerrada la conexión con el cliente\n");
     }
 
