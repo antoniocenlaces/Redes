@@ -30,7 +30,7 @@
 
 #define MAL (void (*)(int))-1
 
-void captura(int);
+void captura();
 
 /**
  * Función que crea la conexión y espera conexiones entrantes.
@@ -234,7 +234,7 @@ int main(int argc, char * argv[])
 }
 
 // Función de captura de SIGCLD para cuando muere un hijo
-void captura(int n) {
+void captura() {
   void (*ff)(int);
   /* El programa puede bloquearse si se captura SIGCLD de hijo asincrono y
 	llega SIGCLD de hijo sincrono antes de la siguiente instruccion */
