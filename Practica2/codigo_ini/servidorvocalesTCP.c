@@ -169,7 +169,7 @@ int main(int argc, char * argv[])
         // bucle de contar vocales
         num = 0;
         do {
-            if ((readbytes = recv(sock, msg, BUFF_SIZE,0)) < 0)
+            if ((readbytes = recv(conn, msg, BUFF_SIZE,0)) < 0)
             {
                 perror("Error de lectura en el socket");
                 exit(1);
