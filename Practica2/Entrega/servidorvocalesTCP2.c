@@ -20,12 +20,17 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <signal.h>
+#include <sys/wait.h>
 
 #include "comun.h"
 #include "error.h"
 // definición de constantes
 #define BUFF_SIZE 1000 ///< Tamaño del buffer para las cadenas de texto.
 
+#define MAL (void (*)(int))-1
+
+void captura(int);
 
 /**
  * Función que crea la conexión y espera conexiones entrantes.
@@ -125,7 +130,8 @@ int main(int argc, char * argv[])
     uint32_t num, netNum;       // contador de vocales en formato local y de red
     struct sockaddr_storage caddr; // dirección del cliente
     socklen_t clen;             // longitud de la dirección
-    int pidh;               // para recoger el pid del proceso hijo y el potencial valor de error
+    int pidh;                   // para recoger el pid del proceso hijo y el potencial valor de error
+    void (*ff)(int);            // puntero a función que devuelve entero
 
     // verificación del número de parámetros:
     if (argc != 2)
@@ -134,7 +140,9 @@ int main(int argc, char * argv[])
         printf("Uso: %s puerto\n", argv[0]);
         exit(1); // finaliza el programa indicando salida incorrecta (1)
     }
-
+    /* Captura se�al SIGCLD */
+    ff=signal(SIGCLD,captura);	/* capturar senial SIGCLD */
+    if (ff == MAL) syserr("signal");
     // obtiene estructura de direccion para el servidor
     servinfo = obtener_struct_direccion(NULL, argv[1], f_verbose);
 
@@ -158,6 +166,7 @@ int main(int argc, char * argv[])
 
         // acepta la conexión
         // en caddr la llamada accept() en caso de éxito me devuelve la dirección del cliente
+        // accept() es bloqueante
         clen = sizeof caddr;
         if ((conn = accept(sock, (struct sockaddr *)&caddr, &clen)) < 0)
         {
@@ -212,6 +221,9 @@ int main(int argc, char * argv[])
             close(conn);
             if (f_verbose) printf("Cerrada la conexión con el cliente\n");
             exit(0);
+            // En este punto los hijos paran y dejan un proceso 'zombie'
+            // que se acaba con la terminación del servidor (padre) una vez se pulsa Ctrl-C
+            // Para evitar los zombies habría capturar la señal SIGCHLD (SIGCLD) y hacer wait(pidh) de ese hijo
             break;
         }
     }
@@ -219,4 +231,16 @@ int main(int argc, char * argv[])
     // código inalcanzable.
     close(sock);
     exit(0);
+}
+
+// Función de captura de SIGCLD para cuando muere un hijo
+void captura(int n) {
+  int i;
+  void (*ff)(int);
+  /* El programa puede bloquearse si se captura SIGCLD de hijo asincrono y
+	llega SIGCLD de hijo sincrono antes de la siguiente instruccion */
+
+  ff=signal(SIGCLD,captura);	/* capturar senial SIGCLD */
+  if (ff == MAL) syserr("signal");
+  i=wait(NULL);
 }
