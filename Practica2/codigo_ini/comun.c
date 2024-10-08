@@ -126,7 +126,7 @@ struct addrinfo* obtener_struct_direccion(char *dir_servidor, char *servicio, ch
 
     // especificamos el tipo de socket deseado:
     // SOCK_STREAM (TCP), SOCK_DGRAM (UDP), etc.
-    hints.ai_socktype = 0;
+    hints.ai_socktype = SOCK_STREAM;
 
     if (f_verbose)
     {
