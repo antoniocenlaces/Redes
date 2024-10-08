@@ -49,7 +49,7 @@ int initsocket(struct addrinfo *servinfo, char f_verbose)
             printf("Creando el socket (socket)... ");
             fflush(stdout);
         }
-        sock = socket( servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
+        sock = socket(, , );
         if (sock < 0)
         {
             perror("Error en la llamada socket: No se pudo crear el socket");
@@ -67,7 +67,7 @@ int initsocket(struct addrinfo *servinfo, char f_verbose)
                 printf("Estableciendo la comunicación a través del socket (connect)... ");
                 fflush(stdout);
             }
-            if (connect( sock, servinfo->ai_addr, servinfo->ai_addrlen) < 0)
+            if (connect(, , ) < 0)
             {
                 perror("Error en la llamada connect: No se pudo conectar con el destino");
                 close(sock);
@@ -149,7 +149,7 @@ int main(int argc, char * argv[])
         if (f_verbose) printf("  Leídos %zd bytes\n", len);
 
         // envía datos al socket
-        if ((sentbytes = send(sock, msg, len, 0)) < 0)
+        if ((sentbytes = send(, , , 0)) < 0)
         {
             perror("Error de escritura en el socket");
             exit(1);
@@ -173,7 +173,7 @@ int main(int argc, char * argv[])
         printf("Cerrando el socket para escritura...");
         fflush(stdout);
     }
-    if (shutdown(sock, SHUT_WR) < 0)
+    if (shutdown(, ) < 0)
     {
         perror("Error al cerrar el socket para escritura");
         exit(1);
@@ -187,18 +187,18 @@ int main(int argc, char * argv[])
     }
 
     // recibe del servidor el número de vocales recibidas:
-    recvbytes = recv(sock, &num, sizeof num, 0);
+    recvbytes = recv(, , , 0);
     if (recvbytes != sizeof num)
     {
         printf("Recibidos %lu bytes en lugar de los %lu esperados", recvbytes, sizeof num);
         exit(1);
     }
     printf(" %ld bytes\n", sizeof num);
-    printf("Todo el texto enviado contenía en total %d vocales\n", ntohl(num));
+    printf("Todo el texto enviado contenía en total %d vocales\n", );
     // convierte el entero largo sin signo de formato de red a formato de host
 
     // cierra la conexión del socket
-    if (close(sock) < 0)
+    if (close() < 0)
     {
         perror("Error al cerrar el socket");
         exit(1);

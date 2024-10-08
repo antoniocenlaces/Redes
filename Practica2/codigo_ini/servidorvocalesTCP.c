@@ -46,7 +46,7 @@ int establecer_servicio(struct addrinfo *servinfo, char f_verbose)
         printf("Creando el socket (socket)... ");
         fflush(stdout);
     }
-    sock = socket(servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
+    sock = socket(, , );
     if (sock < 0)
     {
         perror("Error en la llamada socket: No se pudo crear el socket");
@@ -63,7 +63,7 @@ int establecer_servicio(struct addrinfo *servinfo, char f_verbose)
         printf("Asociando socket a puerto (bind)... ");
         fflush(stdout);
     }
-    if (bind(sock, (struct sockaddr *) servinfo->ai_addr, servinfo->ai_addrlen) < 0)
+    if (bind(, , ) < 0)
     {
         perror("Error asociando el socket");
         exit(1);
@@ -76,7 +76,7 @@ int establecer_servicio(struct addrinfo *servinfo, char f_verbose)
         printf("Permitiendo conexiones entrantes (listen)... ");
         fflush(stdout);
     }
-    listen(sock, 5);
+    listen(, 5);
     // 5 es el número máximo de conexiones pendientes en algunos sistemas
     if (f_verbose) printf("hecho\n");
 
@@ -134,11 +134,10 @@ int main(int argc, char * argv[])
         exit(1); // finaliza el programa indicando salida incorrecta (1)
     }
 
-    // obtiene estructura de direccion para el servidor
+    // obtiene estructura de direccion
     servinfo = obtener_struct_direccion(NULL, argv[1], f_verbose);
 
     // crea un extremo de la comunicación. Devuelve el descriptor del socket
-    // sock contiene el identificador del socket abierto por el servidor
     sock = establecer_servicio(servinfo, f_verbose);
 
     // hay que liberar la memoria dinámica usada para la dirección
@@ -156,9 +155,8 @@ int main(int argc, char * argv[])
         printf("\nEsperando conexión (pulsa <Ctrl+c> para finalizar la ejecución)...\n");
 
         // acepta la conexión
-        // en caddr la llamada accept() en caso de éxito me devuelve la dirección del cliente
         clen = sizeof caddr;
-        if ((conn = accept(sock, (struct sockaddr *)&caddr, &clen)) < 0)
+        if ((conn = accept(, (struct sockaddr *)&caddr, &clen)) < 0)
         {
             perror("Error al aceptar una nueva conexión");
             exit(1);
@@ -169,11 +167,9 @@ int main(int argc, char * argv[])
         printsockaddr(&caddr);
 
         // bucle de contar vocales
-        // con un fork() podriamos hacer que el servidor siga escuchando entradas
-        // el hijo ejecutaría el siguiente bucle
         num = 0;
         do {
-            if ((readbytes = recv(conn, msg, BUFF_SIZE,0)) < 0)
+            if ((readbytes = recv(, , BUFF_SIZE,0)) < 0)
             {
                 perror("Error de lectura en el socket");
                 exit(1);
@@ -193,7 +189,7 @@ int main(int argc, char * argv[])
         netNum = htonl(num);  // convierte el entero largo sin signo hostlong
         // desde el orden de bytes del host al de la red
         // envia al cliente el número de vocales recibidas:
-        if (send(conn, &netNum, sizeof netNum,0) < 0)
+        if (send(, &netNum, sizeof netNum,0) < 0)
         {
             perror("Error de escritura en el socket");
             exit(1);
@@ -201,7 +197,7 @@ int main(int argc, char * argv[])
         if (f_verbose) printf("Enviado número de vocales contadas al cliente\n");
 
         // cierra la conexión con el cliente
-        close(conn);
+        close();
         if (f_verbose) printf("Cerrada la conexión con el cliente\n");
     }
 
