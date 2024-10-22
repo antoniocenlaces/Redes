@@ -124,7 +124,7 @@ int main(int argc, char * argv[])
     char msg[BUFF_SIZE];        // espacio para almacenar los datos recibidos
     ssize_t readbytes;          // numero de bytes recibidos
     uint32_t num, netNum;       // contador de vocales en formato local y de red
-    struct sockaddr_storage caddr; // dirección del cliente
+    struct addrinfo * caddr; // dirección del cliente
     socklen_t clen;             // longitud de la dirección
 
     // verificación del número de parámetros:
@@ -175,7 +175,7 @@ int main(int argc, char * argv[])
         num = 0;
         clen = sizeof caddr;
         do {
-            if ((readbytes = recvfrom(sock, msg, BUFF_SIZE,0, (struct sockaddr *)&caddr, &clen)) < 0)
+            if ((readbytes = recvfrom(sock, msg, BUFF_SIZE,0, (struct sockaddr *) &caddr, &clen)) < 0)
             {
                 perror("Error de lectura en el socket");
                 exit(1);
