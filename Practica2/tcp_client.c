@@ -26,7 +26,7 @@ exit (0) ;
 }
 servaddr . sin_family = AF_INET;
 servaddr . sin_port = htons ( atoi ( argv [ 2 ] ) ) ;
-if ( inet_pton (AF_INET, argv [ 1 ] , &servaddr . sin_addr ) <= 0)
+if ( inet_pton (AF_INET, argv [ 1 ] , &servaddr . sin_addr ) <= 0) // convierte la diección argv[1] en binario en el campo sin_addr
 {
 printf ("inet_pton error for %s", argv [ 1 ] ) ;
 exit (0) ;
