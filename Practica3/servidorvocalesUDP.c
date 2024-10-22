@@ -119,12 +119,12 @@ int main(int argc, char * argv[])
     const char fin = 4;
     // declaración de variables propias del programa principal (locales a main)
     char f_verbose = 1;         // flag, 1: imprimir información extra
-    struct addrinfo * servinfo = {0}; // dirección propia (servidor)
+    struct sockaddr_in  servinfo = {0}; // dirección propia (servidor)
     int sock, endComm = 0;      // descriptor de socket y control de final comunicación del cliente
     char msg[BUFF_SIZE];        // espacio para almacenar los datos recibidos
     ssize_t readbytes;          // numero de bytes recibidos
     uint32_t num, netNum;       // contador de vocales en formato local y de red
-    struct addrinfo * caddr = {0}; // dirección del cliente
+    struct sockaddr_in  caddr = {0}; // dirección del cliente
     socklen_t clen;             // longitud de la dirección
 
     // verificación del número de parámetros:
@@ -140,12 +140,12 @@ int main(int argc, char * argv[])
 
     // crea un extremo de la comunicación. Devuelve el descriptor del socket
     // sock contiene el identificador del socket abierto por el servidor
-    sock = establecer_servicio(servinfo, f_verbose);
+    sock = establecer_servicio(&servinfo, f_verbose);
 
     // hay que liberar la memoria dinámica usada para la dirección
     // cuando ya no se necesite
-    freeaddrinfo(servinfo);
-    servinfo = NULL;
+    freeaddrinfo(&servinfo);
+    // servinfo = NULL;
     // como ya se ha liberado ese bloque de memoria,
     // dejamos de apuntarlo para evitar acceder a ella por error.
     // Si referenciamos esta variable el programa abortará con
@@ -175,13 +175,13 @@ int main(int argc, char * argv[])
         num = 0;
         clen = sizeof caddr;
         do {
-            if ((readbytes = recvfrom(sock, msg, BUFF_SIZE,0, (struct sockaddr *) caddr, &clen)) < 0)
+            if ((readbytes = recvfrom(sock, msg, BUFF_SIZE,0, (struct sockaddr *) &caddr, &clen)) < 0)
             {
                 perror("Error de lectura en el socket");
                 exit(1);
             }
             printf("Estrucutura de dirección recibida en el recvfrom del servidor\n");
-            printsockaddr((struct sockaddr*) caddr->ai_addr);
+            printsockaddr((struct sockaddr*) &caddr.sin_addr);
             if (readbytes == 1 && msg[0] == fin) endComm = 1;
                 else 
                 {
@@ -201,7 +201,7 @@ int main(int argc, char * argv[])
         netNum = htonl(num);  // convierte el entero largo sin signo hostlong
         // desde el orden de bytes del host al de la red
         // envia al cliente el número de vocales recibidas:
-        if (sendto(sock, &netNum, sizeof netNum, 0, caddr->ai_addr, caddr->ai_addrlen) < 0)
+        if (sendto(sock, &netNum, sizeof netNum, 0, (struct sockaddr *) &caddr, sizeof(caddr)) < 0)
         {
             perror("Error de escritura en el socket");
             exit(1);
