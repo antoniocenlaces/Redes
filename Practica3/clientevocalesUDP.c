@@ -41,7 +41,7 @@ int initsocket(struct addrinfo *servinfo, char f_verbose)
         // crea un extremo de la comunicación y devuelve un descriptor
         if (f_verbose)
         {
-            printf("Creando el socket (socket)... ");
+            printf("Creando el socket ... ");
             fflush(stdout);
         }
         sock = socket( servinfo->ai_family, servinfo->ai_socktype, servinfo->ai_protocol);
