@@ -120,7 +120,7 @@ int main(int argc, char * argv[])
     // declaración de variables propias del programa principal (locales a main)
     char f_verbose = 1;         // flag, 1: imprimir información extra
     struct addrinfo * servinfo; // dirección propia (servidor)
-    int sock, conn, endComm = 0;  // descriptores de socket y control de final comunicación del cliente
+    int sock, endComm = 0;      // descriptor de socket y control de final comunicación del cliente
     char msg[BUFF_SIZE];        // espacio para almacenar los datos recibidos
     ssize_t readbytes;          // numero de bytes recibidos
     uint32_t num, netNum;       // contador de vocales en formato local y de red
@@ -199,7 +199,7 @@ int main(int argc, char * argv[])
         netNum = htonl(num);  // convierte el entero largo sin signo hostlong
         // desde el orden de bytes del host al de la red
         // envia al cliente el número de vocales recibidas:
-        if (sendto(conn, &netNum, sizeof netNum, 0, caddr->ai_addr, caddr->ai_addrlen) < 0)
+        if (sendto(sock, &netNum, sizeof netNum, 0, caddr->ai_addr, caddr->ai_addrlen) < 0)
         {
             perror("Error de escritura en el socket");
             exit(1);
