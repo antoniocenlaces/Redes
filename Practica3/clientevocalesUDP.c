@@ -151,7 +151,7 @@ int main(int argc, char * argv[])
         
     }
     // Mandamos la señal de EOT para que el servidor sepa que ya no hay más texto
-        sentbytes = sendto(sock, &fin, 1, 0,(struct sockaddr *) &servinfo, sizeof(servinfo));
+        sentbytes = sendto(sock, &fin, 1, 0, servinfo->ai_addr, servinfo->ai_addrlen);
     
 
     // el servidor verá la conexión cerrada y enviará el número de vocales
