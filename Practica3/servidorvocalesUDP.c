@@ -119,12 +119,12 @@ int main(int argc, char * argv[])
     const char fin = 4;
     // declaración de variables propias del programa principal (locales a main)
     char f_verbose = 1;         // flag, 1: imprimir información extra
-    struct addrinfo * servinfo; // dirección propia (servidor)
+    struct addrinfo * servinfo = {0}; // dirección propia (servidor)
     int sock, endComm = 0;      // descriptor de socket y control de final comunicación del cliente
     char msg[BUFF_SIZE];        // espacio para almacenar los datos recibidos
     ssize_t readbytes;          // numero de bytes recibidos
     uint32_t num, netNum;       // contador de vocales en formato local y de red
-    struct addrinfo * caddr; // dirección del cliente
+    struct addrinfo * caddr = {0}; // dirección del cliente
     socklen_t clen;             // longitud de la dirección
 
     // verificación del número de parámetros:
