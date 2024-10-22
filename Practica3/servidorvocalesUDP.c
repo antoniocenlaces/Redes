@@ -175,11 +175,13 @@ int main(int argc, char * argv[])
         num = 0;
         clen = sizeof caddr;
         do {
-            if ((readbytes = recvfrom(sock, msg, BUFF_SIZE,0, (struct sockaddr *) &caddr, &clen)) < 0)
+            if ((readbytes = recvfrom(sock, msg, BUFF_SIZE,0, (struct sockaddr *) caddr, &clen)) < 0)
             {
                 perror("Error de lectura en el socket");
                 exit(1);
             }
+            printf("Estrucutura de dirección recibida en el recvfrom del servidor\n");
+            printsockaddr((struct sockaddr_storage*) caddr->ai_addr);
             if (readbytes == 1 && msg[0] == fin) endComm = 1;
                 else 
                 {
