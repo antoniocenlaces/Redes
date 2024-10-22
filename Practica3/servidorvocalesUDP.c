@@ -76,7 +76,7 @@ int establecer_servicio(struct addrinfo *servinfo, char f_verbose)
         printf("Permitiendo conexiones entrantes (listen)... ");
         fflush(stdout);
     }
-    listen(sock, 5);
+    // En UDP no se hace listen desde el servidor
     // 5 es el número máximo de conexiones pendientes en algunos sistemas
     if (f_verbose) printf("hecho\n");
 
@@ -153,27 +153,27 @@ int main(int argc, char * argv[])
     // bucle infinito para atender conexiones una tras otra
     while (1)
     {
-        printf("\nEsperando conexión (pulsa <Ctrl+c> para finalizar la ejecución)...\n");
+        // printf("\nEsperando conexión (pulsa <Ctrl+c> para finalizar la ejecución)...\n");
 
-        // acepta la conexión
-        // en caddr la llamada accept() en caso de éxito me devuelve la dirección del cliente
-        clen = sizeof caddr;
-        if ((conn = accept(sock, (struct sockaddr *)&caddr, &clen)) < 0)
-        {
-            perror("Error al aceptar una nueva conexión");
-            exit(1);
-        }
+        // // acepta la conexión
+        // // en caddr la llamada accept() en caso de éxito me devuelve la dirección del cliente
+        // clen = sizeof caddr;
+        // if ((conn = accept(sock, (struct sockaddr *)&caddr, &clen)) < 0)
+        // {
+        //     perror("Error al aceptar una nueva conexión");
+        //     exit(1);
+        // }
 
-        // imprime la dirección obtenida
-        printf("Aceptada conexión con cliente:\n");
-        printsockaddr(&caddr);
+        // // imprime la dirección obtenida
+        // printf("Aceptada conexión con cliente:\n");
+        // printsockaddr(&caddr);
 
         // bucle de contar vocales
         // con un fork() podriamos hacer que el servidor siga escuchando entradas
         // el hijo ejecutaría el siguiente bucle
         num = 0;
         do {
-            if ((readbytes = recv(conn, msg, BUFF_SIZE,0)) < 0)
+            if ((readbytes = recvfrom(conn, msg, BUFF_SIZE,0, (struct sockaddr *)&caddr, &clen)) < 0)
             {
                 perror("Error de lectura en el socket");
                 exit(1);

@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     // }
     // servaddr contiene la dirección del servidor
     recvline[0]='?';recvline[1]=0;
-    n = sendto(sockfd, recvline, 2,0,(struct sockaddr *) &servaddr, sizeof(servaddr));
+    n = sendto(sockfd, recvline, 2,0, servaddr->ai_addr, servaddr->ai_addrlen);
     if (n < 0) {
         printf("client sendto error for %s", argv[1]);
         exit(0);
