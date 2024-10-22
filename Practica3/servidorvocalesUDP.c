@@ -115,11 +115,12 @@ uint32_t countVowels(char msg[], size_t s)
  * @return 0 si todo ha ido bien, distinto de 0 si hay error.
  */
 int main(int argc, char * argv[])
-{
+{   
+    const char fin = 4;
     // declaración de variables propias del programa principal (locales a main)
     char f_verbose = 1;         // flag, 1: imprimir información extra
     struct addrinfo * servinfo; // dirección propia (servidor)
-    int sock, conn;             // descriptores de socket
+    int sock, conn, endComm = 0;  // descriptores de socket y control de final comunicación del cliente
     char msg[BUFF_SIZE];        // espacio para almacenar los datos recibidos
     ssize_t readbytes;          // numero de bytes recibidos
     uint32_t num, netNum;       // contador de vocales en formato local y de red
@@ -157,7 +158,7 @@ int main(int argc, char * argv[])
 
         // // acepta la conexión
         // // en caddr la llamada accept() en caso de éxito me devuelve la dirección del cliente
-        // clen = sizeof caddr;
+        
         // if ((conn = accept(sock, (struct sockaddr *)&caddr, &clen)) < 0)
         // {
         //     perror("Error al aceptar una nueva conexión");
@@ -172,37 +173,40 @@ int main(int argc, char * argv[])
         // con un fork() podriamos hacer que el servidor siga escuchando entradas
         // el hijo ejecutaría el siguiente bucle
         num = 0;
+        clen = sizeof caddr;
         do {
-            if ((readbytes = recvfrom(conn, msg, BUFF_SIZE,0, (struct sockaddr *)&caddr, &clen)) < 0)
+            if ((readbytes = recvfrom(sock, msg, BUFF_SIZE,0, (struct sockaddr *)&caddr, &clen)) < 0)
             {
                 perror("Error de lectura en el socket");
                 exit(1);
             }
-            printf("Mensaje recibido del cliente: "); fflush(stdout);
-            write(1, msg, readbytes);
-            // muestra en pantalla (salida estándar 1) el mensaje recibido
-            // evitamos usar printf por si lo recibido no es texto acabado con \0
-            num += countVowels(msg, readbytes);
-            printf("Vocales contadas hasta el momento: %d\n",num);
+            if (readbytes == 1 && msg[0] == fin) endComm = 1;
+                else 
+                {
+                    printf("Mensaje recibido del cliente: "); fflush(stdout);
+                    write(1, msg, readbytes);
+                    // muestra en pantalla (salida estándar 1) el mensaje recibido
+                    // evitamos usar printf por si lo recibido no es texto acabado con \0
+                    num += countVowels(msg, readbytes);
+                    printf("Vocales contadas hasta el momento: %d\n",num);
+                }
 
         // condición de final: haber recibido 0 bytes (fin de fichero alcanzado)
-        } while (readbytes > 0);
+        } while (readbytes > 0 && endComm == 0);
 
-        printf("\nSocket cerrado para lectura\n");
+        // No es necesario cerrar socket en UDP
         printf("Contadas %d vocales\n", num);  // muestra las vocales recibidas
         netNum = htonl(num);  // convierte el entero largo sin signo hostlong
         // desde el orden de bytes del host al de la red
         // envia al cliente el número de vocales recibidas:
-        if (send(conn, &netNum, sizeof netNum,0) < 0)
+        if (sendto(conn, &netNum, sizeof netNum, 0, caddr->ai_addr, caddr->ai_addrlen) < 0)
         {
             perror("Error de escritura en el socket");
             exit(1);
         }
         if (f_verbose) printf("Enviado número de vocales contadas al cliente\n");
-
-        // cierra la conexión con el cliente
-        close(conn);
-        if (f_verbose) printf("Cerrada la conexión con el cliente\n");
+        // Terminado el servicio a este cliente, no es necesario cerrar el canal con el cliente
+        // en UDP no existe canal abierto
     }
 
     // código inalcanzable.
