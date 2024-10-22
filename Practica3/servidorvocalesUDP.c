@@ -119,7 +119,7 @@ int main(int argc, char * argv[])
     const char fin = 4;
     // declaración de variables propias del programa principal (locales a main)
     char f_verbose = 1;         // flag, 1: imprimir información extra
-    struct sockaddr_in  servinfo = {0}; // dirección propia (servidor)
+    struct sockaddr_in * servinfo = {0}; // dirección propia (servidor)
     int sock, endComm = 0;      // descriptor de socket y control de final comunicación del cliente
     char msg[BUFF_SIZE];        // espacio para almacenar los datos recibidos
     ssize_t readbytes;          // numero de bytes recibidos
@@ -140,12 +140,12 @@ int main(int argc, char * argv[])
 
     // crea un extremo de la comunicación. Devuelve el descriptor del socket
     // sock contiene el identificador del socket abierto por el servidor
-    sock = establecer_servicio(&servinfo, f_verbose);
+    sock = establecer_servicio(servinfo, f_verbose);
 
     // hay que liberar la memoria dinámica usada para la dirección
     // cuando ya no se necesite
     freeaddrinfo(&servinfo);
-    // servinfo = NULL;
+    servinfo = NULL;
     // como ya se ha liberado ese bloque de memoria,
     // dejamos de apuntarlo para evitar acceder a ella por error.
     // Si referenciamos esta variable el programa abortará con
