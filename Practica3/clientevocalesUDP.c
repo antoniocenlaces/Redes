@@ -146,7 +146,7 @@ int main(int argc, char * argv[])
     // ya no queremos enviar más, cerramos para escritura
     if (f_verbose)
     {
-        printf("Enviando señal al servidor que ya no hay más mensajes"\n);
+        printf("Enviando señal al servidor que ya no hay más mensajes\n");
         fflush(stdout);
         
     }
