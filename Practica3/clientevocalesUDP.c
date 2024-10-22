@@ -126,7 +126,7 @@ int main(int argc, char * argv[])
         //  n = sendto(sockfd, recvline, 2,0,(struct sockaddr *) &servaddr, sizeof(servaddr));
         if ((sentbytes = sendto(sock, msg, len, 0, (struct sockaddr *) &servinfo, sizeof(servinfo))) < 0)
         {
-            perror("Error de escritura en el socket");
+            perror("¡OJO! Error de escritura en el socket");
             exit(1);
         }
         else
