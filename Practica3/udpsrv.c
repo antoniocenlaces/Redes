@@ -45,11 +45,10 @@ int main(int argc, char **argv)
 			ticks = time(NULL);
 			snprintf(buff, sizeof(buff), "%.24s\n", ctime(&ticks));
 			n = sendto(listenfd, buff, strlen(buff),0,(struct sockaddr *) &cliaddr, sizeof(cliaddr));
+			if (n < 0) {
+				printf("server sendto error for %s", argv[1]);
+				exit(0);
+			}
 		}
-		if (n < 0) {
-			printf("server sendto error for %s", argv[1]);
-        	exit(0);
-		}
-		
 	}
 }
