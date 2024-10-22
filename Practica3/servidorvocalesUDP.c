@@ -180,8 +180,8 @@ int main(int argc, char * argv[])
                 perror("Error de lectura en el socket");
                 exit(1);
             }
-            printf("Estrucutura de dirección recibida en el recvfrom del servidor\n");
-            printsockaddr((struct sockaddr_storage*) &caddr.sin_addr);
+            // printf("Estrucutura de dirección recibida en el recvfrom del servidor\n");
+            // printsockaddr((struct sockaddr_storage*) &caddr.sin_addr);
             if (readbytes == 1 && msg[0] == fin) endComm = 1;
                 else 
                 {
