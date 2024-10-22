@@ -144,7 +144,7 @@ int main(int argc, char * argv[])
 
     // hay que liberar la memoria dinámica usada para la dirección
     // cuando ya no se necesite
-    freeaddrinfo(&servinfo);
+    freeaddrinfo(servinfo);
     servinfo = NULL;
     // como ya se ha liberado ese bloque de memoria,
     // dejamos de apuntarlo para evitar acceder a ella por error.
