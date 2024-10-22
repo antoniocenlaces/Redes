@@ -146,7 +146,7 @@ int main(int argc, char * argv[])
     // ya no queremos enviar más, cerramos para escritura
     if (f_verbose)
     {
-        printf("Cerrando el socket para escritura...");
+        printf("Enviando señal al servidor que ya no hay más mensajes");
         fflush(stdout);
         
     }
@@ -154,7 +154,7 @@ int main(int argc, char * argv[])
         sentbytes = sendto(sock, &fin, 1, 0, servinfo->ai_addr, servinfo->ai_addrlen);
     
 
-    // el servidor verá la conexión cerrada y enviará el número de vocales
+    // el servidor recibe EOT y enviará el recuento de vocales
     if (f_verbose)
     {
         printf("hecho\nEsperando respuesta del servidor...");
@@ -183,6 +183,8 @@ int main(int argc, char * argv[])
     {
         if (f_verbose) printf("Socket cerrado\n");
     }
-
+    // Liberamos la estructura servinfo
+    freeaddrinfo(servinfo);
+    servinfo = NULL;
     exit(0); // finaliza el programa indicando salida correcta (0)
 }
