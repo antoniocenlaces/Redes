@@ -124,7 +124,8 @@ int main(int argc, char * argv[])
 
         // envía datos al socket
         //  n = sendto(sockfd, recvline, 2,0,(struct sockaddr *) &servaddr, sizeof(servaddr));
-        if ((sentbytes = sendto(sock, msg, len, 0, (struct sockaddr *) &servinfo, sizeof(servinfo))) < 0)
+        // connect( sock, servinfo->ai_addr, servinfo->ai_addrlen)
+        if ((sentbytes = sendto(sock, msg, len, 0, servinfo->ai_addr, servinfo->ai_addrlen)) < 0)
         {
             perror("¡OJO! Error de escritura en el socket");
             exit(1);
