@@ -181,7 +181,7 @@ int main(int argc, char * argv[])
                 exit(1);
             }
             printf("Estrucutura de dirección recibida en el recvfrom del servidor\n");
-            printsockaddr((struct sockaddr_storage*) caddr->ai_addr);
+            printsockaddr((struct sockaddr*) caddr->ai_addr);
             if (readbytes == 1 && msg[0] == fin) endComm = 1;
                 else 
                 {
