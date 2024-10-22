@@ -28,21 +28,16 @@
 #define MAX_BUFF_SIZE 1000 ///< Tamaño del buffer para las cadenas de texto.
 
 /**
- * Función que crea la conexión y se conecta al servidor.
+ * Función que crea la conexión.
+ * En la versión para UDP se devuelve la dirección del servidor en *servinfo
  *
  * @param servinfo Estructura de dirección a la que conectarse.
  * @param f_verbose Flag.
  * @return Descriptor de socket.
  */
 int initsocket(struct addrinfo *servinfo, char f_verbose)
-{
-    int sock = -1;
-    int numdir = 1;
-
-    while (servinfo != NULL && sock < 0)
-    {   // bucle que recorre la lista de direcciones
-        printf("Intentando conexión con dirección %d:\n", numdir);
-
+{   
+    int sock;
         // crea un extremo de la comunicación y devuelve un descriptor
         if (f_verbose)
         {
@@ -59,28 +54,9 @@ int initsocket(struct addrinfo *servinfo, char f_verbose)
         }
         else
         {   // socket creado correctamente
-            if (f_verbose) printf("hecho\n");
+            if (f_verbose) printf("socket creado correctamente\n");
 
-            // inicia una conexión en el socket:
-            if (f_verbose)
-            {
-                printf("Estableciendo la comunicación a través del socket (connect)... ");
-                fflush(stdout);
-            }
-            if (connect( sock, servinfo->ai_addr, servinfo->ai_addrlen) < 0)
-            {
-                perror("Error en la llamada connect: No se pudo conectar con el destino");
-                close(sock);
-                sock = -1;
-            }
-            else
-                if (f_verbose) printf("hecho\n");
         }
-
-        // "avanzamos" a la siguiente estructura de direccion
-        servinfo = servinfo->ai_next;
-        numdir++;
-    }
 
     if (sock < 0)
     {
@@ -102,6 +78,7 @@ int initsocket(struct addrinfo *servinfo, char f_verbose)
  */
 int main(int argc, char * argv[])
 {
+    const char fin = 4;
     // declaración de variables propias del programa principal (locales a main)
     char f_verbose = 1;         // flag, 1: imprimir información extra
     struct addrinfo * servinfo; // puntero a estructura de dirección destino
@@ -127,16 +104,13 @@ int main(int argc, char * argv[])
     // crea un extremo de la comunicación con la primera de las
     // direcciones de servinfo e inicia la conexión con el servidor.
     // Devuelve el descriptor del socket
+    // Al ser comunicación UDP he de mantener la dirección del servidor en serv_info
+
+    // initsocket inicializa el socket y me devuelve el nº de descriptor
     sock = initsocket(servinfo, f_verbose);
 
-    // hay que liberar la memoria dinámica usada para la dirección
-    // cuando ya no se necesite
-    freeaddrinfo(servinfo);
-    servinfo = NULL;
-    // como ya se ha liberado ese bloque de memoria,
-    // dejamos de apuntarlo para evitar acceder a ella por error.
-    // Si referenciamos esta variable el programa abortará con
-    // ERROR: SEGMENTATION FAULT
+    // Al ser UDP no podemos liberar servinfo. Es necesaria para cada sendto() y recvfrom()
+   
 
     // bucle que lee texto del teclado y lo envía al servidor
     printf("\nTeclea el texto a enviar y pulsa <Enter>, o termina con <Ctrl+d>\n");
@@ -149,7 +123,8 @@ int main(int argc, char * argv[])
         if (f_verbose) printf("  Leídos %zd bytes\n", len);
 
         // envía datos al socket
-        if ((sentbytes = send(sock, msg, len, 0)) < 0)
+        //  n = sendto(sockfd, recvline, 2,0,(struct sockaddr *) &servaddr, sizeof(servaddr));
+        if ((sentbytes = sendto(sock, msg, len, 0, (struct sockaddr *) &servinfo, sizeof(servinfo))) < 0)
         {
             perror("Error de escritura en el socket");
             exit(1);
@@ -172,12 +147,11 @@ int main(int argc, char * argv[])
     {
         printf("Cerrando el socket para escritura...");
         fflush(stdout);
+        
     }
-    if (shutdown(sock, SHUT_WR) < 0)
-    {
-        perror("Error al cerrar el socket para escritura");
-        exit(1);
-    }
+    // Mandamos la señal de EOT para que el servidor sepa que ya no hay más texto
+        sentbytes = sendto(sock, &fin, 1, 0,(struct sockaddr *) &servinfo, sizeof(servinfo));
+    
 
     // el servidor verá la conexión cerrada y enviará el número de vocales
     if (f_verbose)
@@ -187,7 +161,8 @@ int main(int argc, char * argv[])
     }
 
     // recibe del servidor el número de vocales recibidas:
-    recvbytes = recv(sock, &num, sizeof num, 0);
+    //n = recvfrom(sockfd, recvline, MAXLINE,0,NULL,NULL);
+    recvbytes = recvfrom(sock, &num, sizeof num, 0,NULL,NULL);
     if (recvbytes != sizeof num)
     {
         printf("Recibidos %lu bytes en lugar de los %lu esperados", recvbytes, sizeof num);
