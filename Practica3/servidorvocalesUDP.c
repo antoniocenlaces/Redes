@@ -159,6 +159,7 @@ int main(int argc, char * argv[])
     {
         // bucle de contar vocales
         num = 0;
+        endComm = 0;
         do {
             // servidor se bloquea en recvfrom() esperando recibir mensaje de algún cliente
             // una vez recibido recvfrom() nos deja en el caddr (struct sockaddr_storage)
