@@ -73,13 +73,10 @@ int establecer_servicio(struct addrinfo *servinfo, char f_verbose)
     // espera conexiones en un socket
     if (f_verbose)
     {
-        printf("Permitiendo conexiones entrantes (listen)... ");
+        printf("Servidor esperando recibir mensajes de cliente ... ");
         fflush(stdout);
     }
     // En UDP no se hace listen desde el servidor
-    // 5 es el número máximo de conexiones pendientes en algunos sistemas
-    if (f_verbose) printf("hecho\n");
-
     return sock;
 }
 
