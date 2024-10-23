@@ -124,7 +124,7 @@ int main(int argc, char * argv[])
     char msg[BUFF_SIZE];        // espacio para almacenar los datos recibidos
     ssize_t readbytes;          // numero de bytes recibidos
     uint32_t num, netNum;       // contador de vocales en formato local y de red
-    struct sockaddr_in  caddr = {0}; // dirección del cliente
+    struct sockaddr_storage  caddr = {0}; // dirección del cliente
     socklen_t clen;             // longitud de la dirección
 
     // verificación del número de parámetros:
@@ -173,8 +173,8 @@ int main(int argc, char * argv[])
         // con un fork() podriamos hacer que el servidor siga escuchando entradas
         // el hijo ejecutaría el siguiente bucle
         num = 0;
-        clen = sizeof caddr;
         do {
+            clen = sizeof caddr;
             if ((readbytes = recvfrom(sock, msg, BUFF_SIZE,0, (struct sockaddr *) &caddr, &clen)) < 0)
             {
                 perror("Error de lectura en el socket");
@@ -201,7 +201,7 @@ int main(int argc, char * argv[])
         netNum = htonl(num);  // convierte el entero largo sin signo hostlong
         // desde el orden de bytes del host al de la red
         // envia al cliente el número de vocales recibidas:
-        if (sendto(sock, &netNum, sizeof netNum, 0, (struct sockaddr *) &caddr, sizeof(caddr)) < 0)
+        if (sendto(sock, &netNum, sizeof netNum, 0, (struct sockaddr *) &caddr, clen) < 0)
         {
             perror("Error de escritura en el socket");
             exit(1);
