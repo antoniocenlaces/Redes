@@ -1,15 +1,20 @@
 /**
- * @file clientevocalesTCP.c
+ * @file clientevocalesUDP.c
  *
- * Programa *clientevocalesTCP* que envía cadenas de texto a un servidor.
+ * Programa *clientevocalesUDP* que envía cadenas de texto a un servidor.
  *
- * Uso: clientevocalesTCP servidor puerto
+ * Uso: clientevocalesUDP servidor puerto
  *
- * El programa crea un socket TCP y lo conecta al servidor y puerto especificado.
+ * El programa crea un socket UDP al servidor y puerto especificado.
  * A través del socket envía cadenas de caracteres hasta llegar a fin de fichero
  * (Control+d para provocarlo desde la entrada estándar).
- * Finalmente, espera como respuesta el número total de vocales en las
+ * En este punto envía un byte con valor 4 al servidor (indicando fin de la transmisión)
+ * y espera como respuesta el número total de vocales en las
  * cadenas enviadas e imprime dicho valor por pantalla.
+ * 
+ * Práctica 3 de Redes 2024-25
+ * Autor: Antonio José González Almela
+ * NIP: 143045
  */
 
 #include <stdio.h>
@@ -63,7 +68,8 @@ int initsocket(struct addrinfo *servinfo, char f_verbose)
         perror("No se ha podido establecer la comunicación");
         exit(1);
     }
-
+    // *servinfo apunta al lugar donde está almacenada la dirección y puerto donde se encuentra el servidor
+    // información necesaria en el cliente para poder comunicar (sendto()) con el servidor
     return sock;
 }
 
@@ -81,7 +87,7 @@ int main(int argc, char * argv[])
     const char fin = 4;
     // declaración de variables propias del programa principal (locales a main)
     char f_verbose = 1;         // flag, 1: imprimir información extra
-    struct addrinfo * servinfo; // puntero a estructura de dirección destino
+    struct addrinfo * servinfo; // puntero a estructura de dirección destino (servidor)
     int sock;                   // descriptor del socket
     char msg[MAX_BUFF_SIZE];    // buffer donde almacenar datos para enviar
     ssize_t len,       // número de bytes leídos por la entrada estándar
@@ -104,12 +110,12 @@ int main(int argc, char * argv[])
     // crea un extremo de la comunicación con la primera de las
     // direcciones de servinfo e inicia la conexión con el servidor.
     // Devuelve el descriptor del socket
-    // Al ser comunicación UDP he de mantener la dirección del servidor en serv_info
+    // Al ser comunicación UDP he de mantener la dirección del servidor en servinfo
 
     // initsocket inicializa el socket y me devuelve el nº de descriptor
     sock = initsocket(servinfo, f_verbose);
 
-    // Al ser UDP no podemos liberar servinfo. Es necesaria para cada sendto() y recvfrom()
+    // Al ser UDP no podemos liberar servinfo. Es necesaria para cada sendto() al servidor
    
 
     // bucle que lee texto del teclado y lo envía al servidor
@@ -122,12 +128,11 @@ int main(int argc, char * argv[])
         // devuelve la longitud de los datos leídos, en bytes
         if (f_verbose) printf("  Leídos %zd bytes\n", len);
 
-        // envía datos al socket
-        //  n = sendto(sockfd, recvline, 2,0,(struct sockaddr *) &servaddr, sizeof(servaddr));
-        // connect( sock, servinfo->ai_addr, servinfo->ai_addrlen)
+        // envía datos al servidor por el socket (sock) y con los datos de dirección
+        // almacenados en *servinfo
         if ((sentbytes = sendto(sock, msg, len, 0, servinfo->ai_addr, servinfo->ai_addrlen)) < 0)
         {
-            perror("¡OJO! Error de escritura en el socket");
+            perror("Error de escritura en el socket");
             exit(1);
         }
         else
@@ -143,7 +148,7 @@ int main(int argc, char * argv[])
         printf("Teclea el texto a enviar y pulsa <Enter>, o termina con <Ctrl+d>\n");
     }
 
-    // ya no queremos enviar más, cerramos para escritura
+    // ya no queremos enviar más y enviamos fin al servidor
     if (f_verbose)
     {
         printf("Enviando señal al servidor que ya no hay más mensajes\n");

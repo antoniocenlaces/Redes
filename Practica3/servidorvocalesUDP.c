@@ -1,15 +1,20 @@
 /**
- * @file servidorvocalesTCP.c
+ * @file servidorvocalesUDP.c
  *
- * Programa *servidorvocalesTCP* que cuenta vocales.
+ * Programa *servidorvocalesUDP* que cuenta vocales.
  *
- * Uso: servidorvocalesTCP puerto
+ * Uso: servidorvocalesUDP puerto
  *
- * El programa crea un socket TCP en el puerto especificado, lo pone en modo
- * escucha y atiende consecutivamente a los clientes que se van conectando.
+ * El programa crea un socket UDP en el puerto especificado, asocia el servidor
+ * a ese puerto y atiende consecutivamente a los clientes UDP que envien mensajes.
  * Para cada cliente, recibe cadenas de texto, cuenta las vocales contenidas
  * y al acabar todas las recepciones envía al cliente el número total de
- * vocales contadas.
+ * vocales contadas. El cliente señaliza el final de la transmisión enviado
+ * un Byte con valor 4 (caracter ascii <EOT>)
+ * 
+ * Práctica 3 de Redes 2024-25
+ * Autor: Antonio José González Almela
+ * NIP: 143045
  */
 
 #include <stdio.h>
@@ -73,7 +78,7 @@ int establecer_servicio(struct addrinfo *servinfo, char f_verbose)
     // espera conexiones en un socket
     if (f_verbose)
     {
-        printf("Servidor esperando recibir mensajes de cliente ... ");
+        printf("Servidor esperando recibir mensajes de cliente ... \n");
         fflush(stdout);
     }
     // En UDP no se hace listen desde el servidor
@@ -121,7 +126,8 @@ int main(int argc, char * argv[])
     char msg[BUFF_SIZE];        // espacio para almacenar los datos recibidos
     ssize_t readbytes;          // numero de bytes recibidos
     uint32_t num, netNum;       // contador de vocales en formato local y de red
-    struct sockaddr_storage  caddr = {0}; // dirección del cliente
+    struct sockaddr_storage  caddr = {0}; // dirección del cliente con formato struct sockaddr_storage
+                                          // que permite almacenar direcciones IPv4 e IPv6
     socklen_t clen;             // longitud de la dirección
 
     // verificación del número de parámetros:
@@ -151,36 +157,22 @@ int main(int argc, char * argv[])
     // bucle infinito para atender conexiones una tras otra
     while (1)
     {
-        // printf("\nEsperando conexión (pulsa <Ctrl+c> para finalizar la ejecución)...\n");
-
-        // // acepta la conexión
-        // // en caddr la llamada accept() en caso de éxito me devuelve la dirección del cliente
-        
-        // if ((conn = accept(sock, (struct sockaddr *)&caddr, &clen)) < 0)
-        // {
-        //     perror("Error al aceptar una nueva conexión");
-        //     exit(1);
-        // }
-
-        // // imprime la dirección obtenida
-        // printf("Aceptada conexión con cliente:\n");
-        // printsockaddr(&caddr);
-
         // bucle de contar vocales
-        // con un fork() podriamos hacer que el servidor siga escuchando entradas
-        // el hijo ejecutaría el siguiente bucle
         num = 0;
         do {
+            // servidor se bloquea en recvfrom() esperando recibir mensaje de algún cliente
+            // una vez recibido recvfrom() nos deja en el caddr (struct sockaddr_storage)
+            // la estructura de dirección del cliente que ha enviado el mensaje
             clen = sizeof caddr;
             if ((readbytes = recvfrom(sock, msg, BUFF_SIZE,0, (struct sockaddr *) &caddr, &clen)) < 0)
             {
                 perror("Error de lectura en el socket");
                 exit(1);
             }
-            // printf("Estrucutura de dirección recibida en el recvfrom del servidor\n");
-            // printsockaddr((struct sockaddr_storage*) &caddr.sin_addr);
+            // En caso de lectura correcta y que el mensaje sea un byte de valor 4 se interrumpe bucle
             if (readbytes == 1 && msg[0] == fin) endComm = 1;
-                else 
+                else
+                // caso contrario se imprime mensaje recibido y se cuentan las vocales
                 {
                     printf("Mensaje recibido del cliente: "); fflush(stdout);
                     write(1, msg, readbytes);
@@ -190,8 +182,8 @@ int main(int argc, char * argv[])
                     printf("Vocales contadas hasta el momento: %d\n",num);
                 }
 
-        // condición de final: haber recibido 0 bytes (fin de fichero alcanzado)
-        } while (readbytes > 0 && endComm == 0);
+        // condición de final: recibir byte de valor 4
+        } while (endComm == 0);
 
         // No es necesario cerrar socket en UDP
         printf("Contadas %d vocales\n", num);  // muestra las vocales recibidas
@@ -206,6 +198,7 @@ int main(int argc, char * argv[])
         if (f_verbose) printf("Enviado número de vocales contadas al cliente\n");
         // Terminado el servicio a este cliente, no es necesario cerrar el canal con el cliente
         // en UDP no existe canal abierto
+        // una vez atendido este cliente volvemos a esperar mensaje de otro cliente
     }
 
     // código inalcanzable.
