@@ -256,7 +256,7 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
 	char ultimoMensaje = FALSE;
 	char ultimoMensajeConfirmado = FALSE;
     char bufferLectura[RCFTP_BUFLEN];
-	uint16_t	len;
+	uint16_t	len, prevLen;
     uint32_t    numseq = 0;
     int         sentMessages = 0;
 	struct rcftp_msg	sendbuffer,
@@ -291,6 +291,7 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
     printf("Enviando mensaje nº %d al servidor, con contenido:\n", sentMessages);
     print_rcftp_msg(&sendbuffer, sizeof sendbuffer);
     while (ultimoMensajeConfirmado == FALSE) {
+        prevLen = len;
         // Enviar mensaje al servidor
         if ((sentbytes = sendto(socket, &sendbuffer, sizeof(sendbuffer), 0, servinfo->ai_addr, servinfo->ai_addrlen)) < 0)
         {
@@ -318,7 +319,7 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
                 sendbuffer.flags = F_FIN;
             }
             // construir el siguiente mensaje válido
-            numseq += len;
+            numseq += prevLen;
             sendbuffer.numseq=htonl(numseq); // El primer mensaje comienza en el byte 0
             sendbuffer.len=htons(len);  // Longitud del mensaje leido por entrada standard
             sendbuffer.next=htonl(0);   // Cliente nunca indica next
