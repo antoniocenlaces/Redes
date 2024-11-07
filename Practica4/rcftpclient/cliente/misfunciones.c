@@ -318,7 +318,7 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
                 sendbuffer.flags = F_FIN;
             }
             // construir el siguiente mensaje válido
-            numseq += 512;
+            numseq += len;
             sendbuffer.numseq=htonl(numseq); // El primer mensaje comienza en el byte 0
             sendbuffer.len=htons(len);  // Longitud del mensaje leido por entrada standard
             sendbuffer.next=htonl(0);   // Cliente nunca indica next
