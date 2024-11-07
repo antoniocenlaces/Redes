@@ -269,9 +269,9 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
     // El primer mensaje a enviar al servidor es con flags = F_NOFLAGS
     sendbuffer.flags = F_NOFLAGS;
     // readtobuffer va a escribir en el buffer del struct sendbuffer el contenido leido
-	len = readtobuffer(bufferLectura, RCFTP_BUFLEN);
+	len = readtobuffer((char *) sendbuffer.buffer, RCFTP_BUFLEN);
 
-    for (int i=0; i<len; ++i) sendbuffer.buffer[i] = (uint8_t) bufferLectura[i];
+    // for (int i=0; i<len; ++i) sendbuffer.buffer[i] = (uint8_t) bufferLectura[i];
 
 	if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
         ultimoMensaje = TRUE;
@@ -312,8 +312,8 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
         if (ultimoMensaje == TRUE) {
             ultimoMensajeConfirmado = TRUE;
         } else {
-            len = readtobuffer(bufferLectura, RCFTP_BUFLEN);
-            for (int i=0; i<len; ++i) sendbuffer.buffer[i] = (uint8_t) bufferLectura[i];
+            len = readtobuffer((char *) sendbuffer.buffer, RCFTP_BUFLEN);
+            // for (int i=0; i<len; ++i) sendbuffer.buffer[i] = (uint8_t) bufferLectura[i];
             if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
                 ultimoMensaje = TRUE;
                 sendbuffer.flags = F_FIN;
