@@ -1,9 +1,7 @@
 /****************************************************************************/
 /* Plantilla para cabeceras de funciones del cliente (rcftpclient)          */
 /* Plantilla $Revision$ */
-/* Autor: Apellidos, Nombre */
-/* Autor: Apellidos, Nombre (segundo autor, si existe) */
-#warning HAY QUE PONER EL NOMBRE (Y BORRAR EL WARNING)
+/* Autor: González Almela, Antonio José */
 /****************************************************************************/
 
 /**
@@ -32,7 +30,10 @@ void printsockaddr(struct sockaddr_storage * saddr);
  */
 int initsocket(struct addrinfo *servinfo, char f_verbose);
 
-
+/**************************************************************************/
+/* Verifica version,next,checksum */
+/**************************************************************************/
+int mensajevalido(struct rcftp_msg recvbuffer);
 /**
  * Algoritmo 1 del cliente
  *
@@ -61,3 +62,9 @@ void alg_stopwait(int socket, struct addrinfo *servinfo);
 void alg_ventana(int socket, struct addrinfo *servinfo,int window);
 
 
+/**
+ * Función que lee un número determinado de bytes de la entrada estandard
+ *
+ * @param[in] len número de bytes a leer
+ */
+char * leeDeEntradaEstandard(int len);

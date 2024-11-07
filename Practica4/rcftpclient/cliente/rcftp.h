@@ -57,7 +57,11 @@
  * Flag de aviso de finalización forzosa
  */
 #define F_ABORT 	4
-
+/**
+ * Definición de TRUE / FALSE
+ */
+#define TRUE 1
+#define FALSE 0
 /**
  * Estructura para el formato de mensaje RCFTP
  *
