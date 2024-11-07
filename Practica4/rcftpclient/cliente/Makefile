@@ -16,10 +16,12 @@
 #######################
 CC=gcc
 UNAME := $(shell uname)
-ifeq ($(UNAME), Linux) # equipos del laboratorio L1.02
+# equipos del laboratorio L1.02
+ifeq ($(UNAME), Linux)
 	RCFTPOPT= -Wall
 endif
-ifeq ($(UNAME), SunOS) # hendrix
+# hendrix
+ifeq ($(UNAME), SunOS)
 	RCFTPOPT= -Wall -lsocket -lnsl -lrt
 endif
 
