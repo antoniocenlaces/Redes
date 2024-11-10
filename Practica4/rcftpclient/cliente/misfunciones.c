@@ -424,4 +424,5 @@ int respuestaesperada(struct rcftp_msg recvbuffer, uint32_t numseq, char ultimoM
         fprintf(stderr,"Servidor ha inviado Fin de Mensaje erróneo\n");
         esperado = 0;
     }
+    return esperado;
 }
