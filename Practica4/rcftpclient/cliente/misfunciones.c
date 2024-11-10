@@ -253,22 +253,22 @@ int initsocket(struct addrinfo *servinfo, char f_verbose){
 /*  enviar un mensaje a una dirección  */
 /**************************************************************************/
  void enviar(int socket,struct rcftp_msg sendbuffer, struct addrinfo *servinfo, int * messageOrd) {
-            ssize_t sentsize;
-            if ((sentsize=sendto(socket,(char *) &sendbuffer,sizeof(sendbuffer),0,servinfo->ai_addr, servinfo->ai_addrlen)) != sizeof(sendbuffer)) {
-                if (sentsize!=-1)
-                    fprintf(stderr,"Error: enviados %d bytes de un mensaje de %d bytes\n",(int)sentsize,(int)sizeof(sendbuffer));
-                else
-                    perror("Error en sendto");
-                exit(1);
-            } 
-            (*messageOrd)++;
-            // print response if in verbose mode
-            if (verb) {
-                printf("  Enviados %zd bytes al servidor\n",sentsize);
-                printf("Mensaje RCFTP nº: %d" ANSI_COLOR_GREEN "enviado" ANSI_COLOR_RESET ":\n", *messageOrd);
-                print_rcftp_msg(&sendbuffer,sizeof(sendbuffer));
-            } 
-        }
+        ssize_t sentsize;
+        if ((sentsize=sendto(socket,(char *) &sendbuffer,sizeof(sendbuffer),0,servinfo->ai_addr, servinfo->ai_addrlen)) != sizeof(sendbuffer)) {
+            if (sentsize!=-1)
+                fprintf(stderr,"Error: enviados %d bytes de un mensaje de %d bytes\n",(int)sentsize,(int)sizeof(sendbuffer));
+            else
+                perror("Error en sendto");
+            exit(1);
+        } 
+        (*messageOrd)++;
+        // print response if in verbose mode
+        if (verb) {
+            printf("  Enviados %zd bytes al servidor\n",sentsize);
+            printf("Mensaje RCFTP nº: %d" ANSI_COLOR_GREEN "enviado" ANSI_COLOR_RESET ":\n", *messageOrd);
+            print_rcftp_msg(&sendbuffer,sizeof(sendbuffer));
+        } 
+    }
 
 /**************************************************************************/
 /*  algoritmo 1 (basico)  */
@@ -309,8 +309,17 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
     while (ultimoMensajeConfirmado == FALSE) {
         prevLen = len; // guarda la longitud del mensaje actual
         // Enviar mensaje al servidor.
-        enviar(socket, sendbuffer, servinfo, messageOrd);
-        
+        // enviar(socket, sendbuffer, servinfo, messageOrd);
+        if ((sentbytes = sendto(socket, &sendbuffer, sizeof(sendbuffer), 0, servinfo->ai_addr, servinfo->ai_addrlen)) < 0)
+        {
+            perror("Error de escritura en el socket");
+            exit(1);
+        }
+        else
+        {
+            if (verb) printf("  Enviados %zd bytes al servidor\n",sentbytes);
+            messageOrd++; // aumento en 1 el contador de mensaje enviados
+        }
         // Recibir respuesta del servidor
         recvbytes = recvfrom(socket,(char *) &recvbuffer, sizeof(struct rcftp_msg), 0,NULL,NULL);
         if (recvbytes != sizeof(struct rcftp_msg))
