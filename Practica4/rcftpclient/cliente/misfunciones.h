@@ -46,6 +46,16 @@ int mensajevalido(struct rcftp_msg recvbuffer);
 void enviar(int socket,struct rcftp_msg sendbuffer, struct addrinfo *servinfo, int * messageOrd);
 
 /**
+ *  recibir
+ * @param[out] buffer Espacio donde almacenar lo recibido
+ * @param[in] buflen Longitud del buffer
+ * @param[out] remote Dirección de la que hemos recibido
+ * @param[out] remotelen Longitud de la dirección de la que hemos recibido
+ * @return Tamaño del mensaje recibido
+ */
+ssize_t recibir(int socket, struct rcftp_msg *buffer, int buflen, struct sockaddr_storage *remote, socklen_t *remotelen);
+
+/**
  * Algoritmo 1 del cliente
  *
  * @param[in] socket Descriptor del socket

@@ -265,15 +265,36 @@ int initsocket(struct addrinfo *servinfo, char f_verbose){
         // print response if in verbose mode
         if (verb) {
             printf("  Enviados %zd bytes al servidor\n",sentsize);
-            printf("Mensaje RCFTP nº: %d" ANSI_COLOR_GREEN "enviado" ANSI_COLOR_RESET ":\n", *messageOrd);
+            printf("Mensaje RCFTP nº: %d" ANSI_COLOR_GREEN " enviado" ANSI_COLOR_RESET ":\n", *messageOrd);
             print_rcftp_msg(&sendbuffer,sizeof(sendbuffer));
         } 
     }
 
 /**************************************************************************/
+/* Recibe mensaje (y hace las verificaciones oportunas) */
+/**************************************************************************/
+ssize_t recibir(int socket, struct rcftp_msg *buffer, int buflen, struct sockaddr_storage *remote, socklen_t *remotelen) {
+	ssize_t recvsize;
+	
+	*remotelen = sizeof(*remote);
+	recvsize = recvfrom(socket,(char *)buffer,buflen,0,(struct sockaddr *)remote,remotelen);
+	if (recvsize<0 && errno!=EAGAIN) { // en caso de socket no bloqueante
+		//if (recvsize<0 && errno!=EINTR) { // en caso de socket bloqueante (no funciona en GNU/Linux)
+		perror("Error en recvfrom: ");
+		exit(1);
+	} else if (*remotelen>sizeof(*remote)) {
+		fprintf(stderr,"Error: la dirección del cliente ha sido truncada\n");
+		exit(1);
+	}
+	return recvsize;
+}
+
+/**************************************************************************/
 /*  algoritmo 1 (basico)  */
 /**************************************************************************/
 void alg_basico(int socket, struct addrinfo *servinfo) {
+    struct sockaddr_storage	remote; // Dirección desde donde recibimos
+    socklen_t remotelen;
 	char ultimoMensaje = FALSE;
 	char ultimoMensajeConfirmado = FALSE;
 	uint16_t	len, prevLen;
@@ -320,7 +341,8 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
                     //     messageOrd++; // aumento en 1 el contador de mensaje enviados
                     // }
         // Recibir respuesta del servidor
-        recvbytes = recvfrom(socket,(char *) &recvbuffer, sizeof(struct rcftp_msg), 0,NULL,NULL);
+        recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
+        // recvbytes = recvfrom(socket,(char *) &recvbuffer, sizeof(struct rcftp_msg), 0,NULL,NULL);
         if (recvbytes != sizeof(struct rcftp_msg))
         { // En caso de que el mensaje recibido no tenga la longitud correcta informa y continuará con nuevo envío
             printf("Recibidos %lu bytes en lugar de los %lu esperados", recvbytes, sizeof(struct rcftp_msg));
