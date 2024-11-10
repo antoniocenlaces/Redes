@@ -309,7 +309,7 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
     while (ultimoMensajeConfirmado == FALSE) {
         prevLen = len; // guarda la longitud del mensaje actual
         // Enviar mensaje al servidor.
-        enviar(socket, sendbuffer, servinfo, messageOrd);
+        enviar(socket, sendbuffer, servinfo, &messageOrd);
                     // if ((sentbytes = sendto(socket, &sendbuffer, sizeof(sendbuffer), 0, servinfo->ai_addr, servinfo->ai_addrlen)) < 0)
                     // {
                     //     perror("Error de escritura en el socket");
