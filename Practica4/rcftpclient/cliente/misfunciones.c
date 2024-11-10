@@ -281,8 +281,7 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
     int         messageOrd = 0;
 	struct rcftp_msg	sendbuffer,
                         recvbuffer;
-    ssize_t sentbytes,
-            recvbytes;
+    ssize_t     recvbytes;
 
     printf("Comunicación con algoritmo básico\n");
 
