@@ -43,8 +43,8 @@ int mensajevalido(struct rcftp_msg recvbuffer);
  * @param[in] servinfo Estructura con la dirección del servidor
  * @param[in/out] messageOrd Número secuencial del mensaje enviado
 */
-// void enviar(int socket,struct rcftp_msg sendbuffer, struct addrinfo *servinfo, int * messageOrd);
-void nueva_tt(int a);
+void enviar(int socket,struct rcftp_msg sendbuffer, struct addrinfo *servinfo, int * messageOrd);
+
 /**
  * Algoritmo 1 del cliente
  *

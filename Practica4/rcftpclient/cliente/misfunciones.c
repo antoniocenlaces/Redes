@@ -252,24 +252,24 @@ int initsocket(struct addrinfo *servinfo, char f_verbose){
 /**************************************************************************/
 /*  enviar un mensaje a una dirección  */
 /**************************************************************************/
-//  void enviar(int socket,struct rcftp_msg sendbuffer, struct addrinfo *servinfo, int * messageOrd) {
-//         ssize_t sentsize;
-//         if ((sentsize=sendto(socket,(char *) &sendbuffer,sizeof(sendbuffer),0,servinfo->ai_addr, servinfo->ai_addrlen)) != sizeof(sendbuffer)) {
-//             if (sentsize!=-1)
-//                 fprintf(stderr,"Error: enviados %d bytes de un mensaje de %d bytes\n",(int)sentsize,(int)sizeof(sendbuffer));
-//             else
-//                 perror("Error en sendto");
-//             exit(1);
-//         } 
-//         (*messageOrd)++;
-//         // print response if in verbose mode
-//         if (verb) {
-//             printf("  Enviados %zd bytes al servidor\n",sentsize);
-//             printf("Mensaje RCFTP nº: %d" ANSI_COLOR_GREEN "enviado" ANSI_COLOR_RESET ":\n", *messageOrd);
-//             print_rcftp_msg(&sendbuffer,sizeof(sendbuffer));
-//         } 
-//     }
-void nueva_tt(int a) { a++;}
+ void enviar(int socket,struct rcftp_msg sendbuffer, struct addrinfo *servinfo, int * messageOrd) {
+        ssize_t sentsize;
+        if ((sentsize=sendto(socket,(char *) &sendbuffer,sizeof(sendbuffer),0,servinfo->ai_addr, servinfo->ai_addrlen)) != sizeof(sendbuffer)) {
+            if (sentsize!=-1)
+                fprintf(stderr,"Error: enviados %d bytes de un mensaje de %d bytes\n",(int)sentsize,(int)sizeof(sendbuffer));
+            else
+                perror("Error en sendto");
+            exit(1);
+        } 
+        (*messageOrd)++;
+        // print response if in verbose mode
+        if (verb) {
+            printf("  Enviados %zd bytes al servidor\n",sentsize);
+            printf("Mensaje RCFTP nº: %d" ANSI_COLOR_GREEN "enviado" ANSI_COLOR_RESET ":\n", *messageOrd);
+            print_rcftp_msg(&sendbuffer,sizeof(sendbuffer));
+        } 
+    }
+
 /**************************************************************************/
 /*  algoritmo 1 (basico)  */
 /**************************************************************************/
