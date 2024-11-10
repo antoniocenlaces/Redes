@@ -38,6 +38,8 @@ int initsocket(struct addrinfo *servinfo, char f_verbose);
  */
 int mensajevalido(struct rcftp_msg recvbuffer);
 
+int respuestaesperada(struct rcftp_msg recvbuffer, uint32_t numseq, char ultimoMensaje);
+
 /** 
  * enviar mensaje
  * 
