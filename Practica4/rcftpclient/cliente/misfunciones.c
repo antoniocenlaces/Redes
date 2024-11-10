@@ -280,13 +280,13 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
 	sendbuffer.numseq=htonl(numseq); // El primer mensaje comienza en el byte 0
 	sendbuffer.len=htons(len);  // Longitud del mensaje leido por entrada standard
 	sendbuffer.next=htonl(0);   // Cliente nunca indica next
-	sendbuffer.sum=0;
+	sendbuffer.sum=0;           // checksum se calcula con sum=0
 	sendbuffer.sum=xsum((char*)&sendbuffer,sizeof(sendbuffer));
 	// en este punto el mensaje "correcto" está listo
     // Cliente imprime contenido del mensaje que se va a enviar
-    sentMessages++;
+    // sentMessages++;
     printf("Enviando mensaje nº %d al servidor, con contenido:\n", sentMessages);
-    print_rcftp_msg(&sendbuffer, sizeof sendbuffer);
+    print_rcftp_msg(&sendbuffer, sizeof(sendbuffer));
     while (ultimoMensajeConfirmado == FALSE) {
         prevLen = len;
         // Enviar mensaje al servidor
@@ -298,6 +298,7 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
         else
         {
             if (verb) printf("  Enviados %zd bytes al servidor\n",sentbytes);
+            sentMessages++; // aumento en 1 el contador de mensaje enviados
         }
         // Recibir respuesta del servidor
         recvbytes = recvfrom(socket, &recvbuffer, sizeof(struct rcftp_msg), 0,NULL,NULL);
@@ -323,7 +324,6 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
             sendbuffer.sum=xsum((char*)&sendbuffer,sizeof(sendbuffer));
             // en este punto el mensaje "correcto" está listo
             // Cliente imprime contenido del mensaje que se va a enviar
-            sentMessages++;
             printf("Enviando mensaje nº %d al servidor, con contenido:\n", sentMessages);
             print_rcftp_msg(&sendbuffer, sizeof sendbuffer);
         }
