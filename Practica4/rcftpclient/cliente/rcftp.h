@@ -62,6 +62,18 @@
  */
 #define TRUE 1
 #define FALSE 0
+
+/* defines para colorear salida */
+/** @{ */
+#define ANSI_COLOR_RED     "\x1b[31m" /**< Pone terminal a rojo */
+#define ANSI_COLOR_GREEN   "\x1b[32m" /**< Pone terminal a verde */
+#define ANSI_COLOR_YELLOW  "\x1b[33m" /**< Pone terminal a amarillo */
+#define ANSI_COLOR_BLUE    "\x1b[34m" /**< Pone terminal a azul */
+#define ANSI_COLOR_MAGENTA "\x1b[35m" /**< Pone terminal a magenta */
+#define ANSI_COLOR_CYAN    "\x1b[36m" /**< Pone terminal a turquesa */
+#define ANSI_COLOR_RESET   "\x1b[0m" /**< Desactiva color del terminal */
+/** @} */
+
 /**
  * Estructura para el formato de mensaje RCFTP
  *

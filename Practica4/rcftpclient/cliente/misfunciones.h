@@ -34,6 +34,17 @@ int initsocket(struct addrinfo *servinfo, char f_verbose);
 /* Verifica version,next,checksum */
 /**************************************************************************/
 int mensajevalido(struct rcftp_msg recvbuffer);
+
+/** 
+ * enviar mensaje
+ * 
+ * @param[in] socket Descriptor del socket
+ * @param[in] sendbuffer Mensaje a enviar
+ * @param[in] servinfo Estructura con la dirección del servidor
+ * @param[in/out] messageOrd Número secuencial del mensaje enviado
+*/
+void enviar(int socket,struct rcftp_msg sendbuffer, struct addrinfo *servinfo, int * messageOrd)
+
 /**
  * Algoritmo 1 del cliente
  *
