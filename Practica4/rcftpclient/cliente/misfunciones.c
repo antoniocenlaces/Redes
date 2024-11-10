@@ -309,17 +309,17 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
     while (ultimoMensajeConfirmado == FALSE) {
         prevLen = len; // guarda la longitud del mensaje actual
         // Enviar mensaje al servidor.
-        // enviar(socket, sendbuffer, servinfo, messageOrd);
-        if ((sentbytes = sendto(socket, &sendbuffer, sizeof(sendbuffer), 0, servinfo->ai_addr, servinfo->ai_addrlen)) < 0)
-        {
-            perror("Error de escritura en el socket");
-            exit(1);
-        }
-        else
-        {
-            if (verb) printf("  Enviados %zd bytes al servidor\n",sentbytes);
-            messageOrd++; // aumento en 1 el contador de mensaje enviados
-        }
+        enviar(socket, sendbuffer, servinfo, messageOrd);
+                    // if ((sentbytes = sendto(socket, &sendbuffer, sizeof(sendbuffer), 0, servinfo->ai_addr, servinfo->ai_addrlen)) < 0)
+                    // {
+                    //     perror("Error de escritura en el socket");
+                    //     exit(1);
+                    // }
+                    // else
+                    // {
+                    //     if (verb) printf("  Enviados %zd bytes al servidor\n",sentbytes);
+                    //     messageOrd++; // aumento en 1 el contador de mensaje enviados
+                    // }
         // Recibir respuesta del servidor
         recvbytes = recvfrom(socket,(char *) &recvbuffer, sizeof(struct rcftp_msg), 0,NULL,NULL);
         if (recvbytes != sizeof(struct rcftp_msg))
