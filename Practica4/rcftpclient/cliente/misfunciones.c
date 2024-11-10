@@ -261,11 +261,11 @@ int initsocket(struct addrinfo *servinfo, char f_verbose){
                 perror("Error en sendto");
             exit(1);
         } 
-        (*messageOrd)++;
+        // (*messageOrd)++;
         // print response if in verbose mode
         if (verb) {
             printf("  Enviados %zd bytes al servidor\n",sentsize);
-            printf("Mensaje RCFTP nº: %d" ANSI_COLOR_GREEN " enviado" ANSI_COLOR_RESET ":\n", *messageOrd);
+            printf("Mensaje RCFTP " ANSI_COLOR_GREEN "enviado" ANSI_COLOR_RESET ":\n");
             print_rcftp_msg(&sendbuffer,sizeof(sendbuffer));
         } 
     }
@@ -286,6 +286,11 @@ ssize_t recibir(int socket, struct rcftp_msg *buffer, int buflen, struct sockadd
 		fprintf(stderr,"Error: la dirección del cliente ha sido truncada\n");
 		exit(1);
 	}
+    if (verb) {
+        printf("\n");
+        printf("Mensaje RCFTP " ANSI_COLOR_CYAN "recibido" ANSI_COLOR_RESET ":\n");
+        print_rcftp_msg(buffer,recvsize);
+			}
 	return recvsize;
 }
 
@@ -328,29 +333,21 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
    
     while (ultimoMensajeConfirmado == FALSE) {
         prevLen = len; // guarda la longitud del mensaje actual
+        printf("Realizando envío: %d \n", messageOrd);
         // Enviar mensaje al servidor.
         enviar(socket, sendbuffer, servinfo, &messageOrd);
-                    // if ((sentbytes = sendto(socket, &sendbuffer, sizeof(sendbuffer), 0, servinfo->ai_addr, servinfo->ai_addrlen)) < 0)
-                    // {
-                    //     perror("Error de escritura en el socket");
-                    //     exit(1);
-                    // }
-                    // else
-                    // {
-                    //     if (verb) printf("  Enviados %zd bytes al servidor\n",sentbytes);
-                    //     messageOrd++; // aumento en 1 el contador de mensaje enviados
-                    // }
+    
         // Recibir respuesta del servidor
         recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
-        // recvbytes = recvfrom(socket,(char *) &recvbuffer, sizeof(struct rcftp_msg), 0,NULL,NULL);
         if (recvbytes != sizeof(struct rcftp_msg))
         { // En caso de que el mensaje recibido no tenga la longitud correcta informa y continuará con nuevo envío
             printf("Recibidos %lu bytes en lugar de los %lu esperados", recvbytes, sizeof(struct rcftp_msg));
         }
         // Aquí se debe confirmar si el mensaje recibido es válido y es la respuesta esperada
-        if (ultimoMensaje == TRUE) {
+        if (mensajevalido(recvbuffer) && (respuestaesperada(recvbuffer, (numseq + len), ultimoMensaje))) {
+            if (ultimoMensaje == TRUE) {
             ultimoMensajeConfirmado = TRUE;
-        } else {
+            } else {
             len = readtobuffer((char *) sendbuffer.buffer, RCFTP_BUFLEN);
             if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
                 ultimoMensaje = TRUE;
@@ -364,6 +361,7 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
             sendbuffer.sum=0;
             sendbuffer.sum=xsum((char*)&sendbuffer,sizeof(sendbuffer));
             // en este punto siguiente mensaje "correcto" está listo
+            }
         }
     }
 }
@@ -391,12 +389,11 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
 }
 
 /**************************************************************************/
-/* Verifica version,next,checksum */
+/* Verifica version,checksum */
 /**************************************************************************/
 int mensajevalido(struct rcftp_msg recvbuffer) { 
 	int esperado=1;
 	//uint16_t aux;
-
 	if (recvbuffer.version!=RCFTP_VERSION_1) { // versión incorrecta
 		esperado=0;
 		fprintf(stderr,"Error: recibido un mensaje con versión incorrecta\n");
@@ -410,4 +407,21 @@ int mensajevalido(struct rcftp_msg recvbuffer) {
 		recvbuffer.sum=aux;*/
 	}
 	return esperado;
+}
+
+int respuestaesperada(struct rcftp_msg recvbuffer, uint32_t numseq, char ultimoMensaje) {
+    int esperado = 1;
+    if (ntohl(recvbuffer.next) != numseq) {
+        fprint(stderr, "Servidor ha enviado siguiente número de secuencia incorrecto.");
+        esperado = 0;
+    }
+    // if flag abort present, abort
+    if (recvbuffer.flags & F_ABORT) {
+        fprintf(stderr,"Flag F_ABORT recibido\n");
+        exit(1);
+    }
+    if ((recvbuffer.flags & F_FIN) && (!ultimoMensaje)){
+        fprintf(stderr,"Servidor ha inviado Fin de Mensaje erróneo\n");
+        esperado = 0;
+    }
 }

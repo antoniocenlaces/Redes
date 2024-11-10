@@ -30,9 +30,12 @@ void printsockaddr(struct sockaddr_storage * saddr);
  */
 int initsocket(struct addrinfo *servinfo, char f_verbose);
 
-/**************************************************************************/
-/* Verifica version,next,checksum */
-/**************************************************************************/
+/**
+ * Verifica si versión y checksum de mensaje son válidos
+ *
+ * @param[in] recvbuffer Mensaje a comprobar
+ * @return 1: es el esperado; 0: no es el esperado
+ */
 int mensajevalido(struct rcftp_msg recvbuffer);
 
 /** 
