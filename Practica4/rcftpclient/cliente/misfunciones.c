@@ -288,7 +288,7 @@ ssize_t recibir(int socket, struct rcftp_msg *buffer, int buflen, struct sockadd
 	}
     if (verb) {
         printf("\n");
-        printf("Mensaje RCFTP " ANSI_COLOR_CYAN "recibido" ANSI_COLOR_RESET ":\n");
+        printf("Mensaje RCFTP " ANSI_COLOR_MAGENTA "recibido" ANSI_COLOR_RESET ":\n");
         print_rcftp_msg(buffer,recvsize);
 			}
 	return recvsize;
@@ -302,6 +302,7 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
     socklen_t remotelen;
 	char ultimoMensaje = FALSE;
 	char ultimoMensajeConfirmado = FALSE;
+    char repeat;
 	uint16_t	len, prevLen;
     uint32_t    numseq = 0;
     int         messageOrd = 0;
@@ -331,9 +332,10 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
 	sendbuffer.sum=xsum((char*)&sendbuffer,sizeof(sendbuffer));
 	// en este punto el mensaje "correcto" está listo
    
+    repeat = FALSE;
     while (ultimoMensajeConfirmado == FALSE) {
         prevLen = len; // guarda la longitud del mensaje actual
-        printf("Realizando envío: %d \n", messageOrd);
+        if (!repeat) printf("Realizando envío: %d \n", messageOrd);
         // Enviar mensaje al servidor.
         enviar(socket, sendbuffer, servinfo, &messageOrd);
     
@@ -341,10 +343,12 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
         recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
         if (recvbytes != sizeof(struct rcftp_msg))
         { // En caso de que el mensaje recibido no tenga la longitud correcta informa y continuará con nuevo envío
-            printf("Recibidos %lu bytes en lugar de los %lu esperados", recvbytes, sizeof(struct rcftp_msg));
+            printf("Recibidos %lu bytes en lugar de los %lu esperados\n", recvbytes, sizeof(struct rcftp_msg));
         }
         // Aquí se debe confirmar si el mensaje recibido es válido y es la respuesta esperada
         if (mensajevalido(recvbuffer) && (respuestaesperada(recvbuffer, (numseq + len), ultimoMensaje))) {
+            repeat = FALSE;
+            printf("Envío: %d" ANSI_COLOR_GREEN " todo correcto\n" ANSI_COLOR_RESET, messageOrd);
             if (ultimoMensaje == TRUE) {
             ultimoMensajeConfirmado = TRUE;
             } else {
@@ -361,7 +365,11 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
             sendbuffer.sum=0;
             sendbuffer.sum=xsum((char*)&sendbuffer,sizeof(sendbuffer));
             // en este punto siguiente mensaje "correcto" está listo
+            messageOrd++;
             }
+        } else {
+            printf(ANSI_COLOR_CYAN "Repetición de envío: %d\n" ANSI_COLOR_RESET, messageOrd);
+            repeat = TRUE;
         }
     }
 }
