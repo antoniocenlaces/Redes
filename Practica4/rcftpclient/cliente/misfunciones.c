@@ -412,7 +412,7 @@ int mensajevalido(struct rcftp_msg recvbuffer) {
 int respuestaesperada(struct rcftp_msg recvbuffer, uint32_t numseq, char ultimoMensaje) {
     int esperado = 1;
     if (ntohl(recvbuffer.next) != numseq) {
-        fprint(stderr, "Servidor ha enviado siguiente número de secuencia incorrecto.");
+        fprintf(stderr, "Servidor ha enviado siguiente número de secuencia incorrecto.");
         esperado = 0;
     }
     // if flag abort present, abort
