@@ -102,7 +102,8 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window);
 
 /**
  * Lee de la entrada estándar un número específico de bytes y los guarda en un buffer.
- * Además de realizar la llamada read, realiza comprobaciones y muestra mensajes.
+ * Además de realizar la llamada read, realiza comprobaciones, muestra mensajes y toma datos
+ * para posteriormente calcular la velocidad efectiva conseguida.
  *
  * @param[out] buffer Dirección a partir de la cual almacenar los datos leídos
  * @param[in] maxlen Número de bytes a leer
