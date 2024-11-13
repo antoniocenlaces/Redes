@@ -343,7 +343,7 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
     repeat = FALSE;
     while (ultimoMensajeConfirmado == FALSE) {
         prevLen = len; // guarda la longitud del mensaje actual
-        if (!repeat) printf("Realizando envío: " ANSI_COLOR_CYAN "%d \n" ANSI_COLOR_RESET, messageOrd);
+        if (!repeat && verb) printf("Realizando envío: " ANSI_COLOR_CYAN "%d \n" ANSI_COLOR_RESET, messageOrd);
         // Enviar mensaje al servidor.
         enviar(socket, sendbuffer, servinfo, &messageOrd);
     
@@ -356,7 +356,8 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
         // Aquí se debe confirmar si el mensaje recibido es válido y es la respuesta esperada
         if (mensajevalido(recvbuffer) && (respuestaesperada(recvbuffer, (numseq + len), ultimoMensaje))) {
             repeat = FALSE;
-            printf("Envío: %d" ANSI_COLOR_GREEN " todo correcto\n" ANSI_COLOR_RESET, messageOrd);
+            if (verb )
+                printf("Envío: %d" ANSI_COLOR_GREEN " todo correcto\n" ANSI_COLOR_RESET, messageOrd);
             if (ultimoMensaje == TRUE) {
             ultimoMensajeConfirmado = TRUE;
             } else {
