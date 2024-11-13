@@ -251,6 +251,8 @@ int initsocket(struct addrinfo *servinfo, char f_verbose){
 
 /**************************************************************************/
 /*  lee de entrada estandard  */
+/*  uso la función readtobuffer de rcftpclient que además almacena datos
+    para estadística de velocidad*/
 /**************************************************************************/
 int leeDeEntradaEstandard(char * buffer, int maxlen){
     	return readtobuffer(buffer, maxlen);
