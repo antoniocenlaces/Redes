@@ -38,10 +38,21 @@ int initsocket(struct addrinfo *servinfo, char f_verbose);
  */
 int mensajevalido(struct rcftp_msg recvbuffer);
 
+/**
+ * Verifica si numero de secuencia y flags de mensaje recibido son válidos
+ *
+ * @param[in] recvbuffer Mensaje a comprobar
+ * @param[in] numseq número de secuencia que se espera recibir
+ * @param[in] ultimoMensaje valor 1: es el último mensaje => flags debe contener F_FIN; valor 0: no es último mensaje
+ * @return 1: es el esperado; 0: no es el esperado
+ */
 int respuestaesperada(struct rcftp_msg recvbuffer, uint32_t numseq, char ultimoMensaje);
 
 /** 
- * enviar mensaje
+ * enviar mensaje almacenado en sendbuffer por socket a la dirección especificada en servinfo
+ * además imprime el nº de bytes enviados, el número de orden especificado en messageOrd
+ * y el contenido de la cabecera del mensaje
+ * en caso de error lo señaliza y acaba con error
  * 
  * @param[in] socket Descriptor del socket
  * @param[in] sendbuffer Mensaje a enviar
@@ -51,7 +62,8 @@ int respuestaesperada(struct rcftp_msg recvbuffer, uint32_t numseq, char ultimoM
 void enviar(int socket,struct rcftp_msg sendbuffer, struct addrinfo *servinfo, int * messageOrd);
 
 /**
- *  recibir
+ *  recibir un mensaje de tamaño máximo buflen almacenado en buffer, por el socket
+ *  la dirección del remitente es almacenada en remote
  * @param[out] buffer Espacio donde almacenar lo recibido
  * @param[in] buflen Longitud del buffer
  * @param[out] remote Dirección de la que hemos recibido
@@ -89,8 +101,11 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window);
 
 
 /**
- * Función que lee un número determinado de bytes de la entrada estandard
+ * Lee de la entrada estándar un número específico de bytes y los guarda en un buffer.
+ * Además de realizar la llamada read, realiza comprobaciones y muestra mensajes.
  *
- * @param[in] len número de bytes a leer
+ * @param[out] buffer Dirección a partir de la cual almacenar los datos leídos
+ * @param[in] maxlen Número de bytes a leer
+ * @return Número de bytes leídos
  */
-char * leeDeEntradaEstandard(int len);
+int leeDeEntradaEstandard(char * buffer, int maxlen);

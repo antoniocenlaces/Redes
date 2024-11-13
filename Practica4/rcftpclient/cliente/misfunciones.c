@@ -250,6 +250,49 @@ int initsocket(struct addrinfo *servinfo, char f_verbose){
 }
 
 /**************************************************************************/
+/*  lee de entrada estandard  */
+/**************************************************************************/
+int leeDeEntradaEstandard(char * buffer, int maxlen){
+    ssize_t len;
+
+	// verificamos que lo que queremos leer es razonable
+	if (maxlen<0) {
+		fprintf(stderr,"Error: readtobuffer: intentando leer %d bytes de datos\n",maxlen);
+		exit(1);
+	} else if (maxlen > RCFTP_BUFLEN) {
+		fprintf(stderr,"Warning: readtobuffer: intentando leer más de RCFTP_BUFLEN bytes\n");
+	} else if ((maxlen<RCFTP_BUFLEN) && verb) {
+		fprintf(stderr,"Warning: readtobuffer: intentando leer menos de RCFTP_BUFLEN bytes\n");
+	}
+
+	len = read(0, buffer, maxlen);
+	// lee del teclado; sobreescribe buffer; devuelve el número de bytes leídos
+	//
+	// bloqueante: no sale hasta haber leído algo o error
+	// no bloqueante: sale si no hay nada que leer
+	//
+	// en caso de Segmentation fault/Violación de segmento aquí, es que
+	// no le estamos pasando correctamente la dirección de un buffer de tamaño adecuado
+	
+	// verificamos la cantidad de datos leída
+	if (len<0 && errno!=EAGAIN) { // no mostramos mensaje en caso de descriptor no bloqueante
+		perror("Error: readtobuffer: error al leer de la entrada estándar: ");
+		exit(1);
+	}
+	if(verb) {
+		if (len==0) {
+			printf("readtobuffer: fin de fichero alcanzado. No quedan datos que leer\n");
+		} else if (len==maxlen) {
+			printf("readtobuffer: leídos de la entrada estándar los %zd bytes solicitados\n",len);
+		} else if (len>0) {
+			printf("readtobuffer: leídos %zd bytes de la entrada estándar (fin de fichero alcanzado o teclado en entrada estándar)\n",len);
+		}
+	}
+
+	return len;
+}
+
+/**************************************************************************/
 /*  enviar un mensaje a una dirección  */
 /**************************************************************************/
  void enviar(int socket,struct rcftp_msg sendbuffer, struct addrinfo *servinfo, int * messageOrd) {
@@ -257,9 +300,10 @@ int initsocket(struct addrinfo *servinfo, char f_verbose){
         if ((sentsize=sendto(socket,(char *) &sendbuffer,sizeof(sendbuffer),0,servinfo->ai_addr, servinfo->ai_addrlen)) != sizeof(sendbuffer)) {
             if (sentsize!=-1)
                 fprintf(stderr,"Error: enviados %d bytes de un mensaje de %d bytes\n",(int)sentsize,(int)sizeof(sendbuffer));
-            else
+            else {
                 perror("Error en sendto");
-            exit(1);
+                exit(1);
+            }
         } 
         // (*messageOrd)++;
         // print response if in verbose mode
@@ -316,7 +360,7 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
     sendbuffer.flags = F_NOFLAGS;
     // readtobuffer va a escribir en el buffer del struct sendbuffer el contenido leido
     // Contenido del primer mensaje es leido de entrada estandars antes de iniciar bucle
-	len = readtobuffer((char *) sendbuffer.buffer, RCFTP_BUFLEN);
+	len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
 
 	if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
         ultimoMensaje = TRUE;
@@ -352,7 +396,7 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
             if (ultimoMensaje == TRUE) {
             ultimoMensajeConfirmado = TRUE;
             } else {
-            len = readtobuffer((char *) sendbuffer.buffer, RCFTP_BUFLEN);
+            len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
             if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
                 ultimoMensaje = TRUE;
                 sendbuffer.flags = F_FIN;
@@ -417,6 +461,9 @@ int mensajevalido(struct rcftp_msg recvbuffer) {
 	return esperado;
 }
 
+/**************************************************************************/
+/* Verifica numero de secuencia, flags */
+/**************************************************************************/
 int respuestaesperada(struct rcftp_msg recvbuffer, uint32_t numseq, char ultimoMensaje) {
     int esperado = 1;
     if (ntohl(recvbuffer.next) != numseq) {
