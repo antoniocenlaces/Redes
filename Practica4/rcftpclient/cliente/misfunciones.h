@@ -59,7 +59,7 @@ int respuestaesperada(struct rcftp_msg recvbuffer, uint32_t numseq, char ultimoM
  * @param[in] servinfo Estructura con la dirección del servidor
  * @param[in/out] messageOrd Número secuencial del mensaje enviado
 */
-void enviar(int socket,struct rcftp_msg sendbuffer, struct addrinfo *servinfo, int * messageOrd);
+void enviar(int socket,struct rcftp_msg sendbuffer, struct addrinfo *servinfo);
 
 /**
  *  recibir un mensaje de tamaño máximo buflen almacenado en buffer, por el socket

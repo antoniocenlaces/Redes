@@ -261,7 +261,7 @@ int leeDeEntradaEstandard(char * buffer, int maxlen){
 /**************************************************************************/
 /*  enviar un mensaje a una dirección  */
 /**************************************************************************/
- void enviar(int socket,struct rcftp_msg sendbuffer, struct addrinfo *servinfo, int * messageOrd) {
+ void enviar(int socket,struct rcftp_msg sendbuffer, struct addrinfo *servinfo) {
         ssize_t sentsize;
         if ((sentsize=sendto(socket,(char *) &sendbuffer,sizeof(sendbuffer),0,servinfo->ai_addr, servinfo->ai_addrlen)) != sizeof(sendbuffer)) {
             if (sentsize!=-1)
@@ -271,8 +271,6 @@ int leeDeEntradaEstandard(char * buffer, int maxlen){
                 exit(1);
             }
         } 
-        // (*messageOrd)++;
-        // print response if in verbose mode
         if (verb) {
             printf("  Enviados %zd bytes al servidor\n",sentsize);
             printf("Mensaje RCFTP " ANSI_COLOR_GREEN "enviado" ANSI_COLOR_RESET ":\n");
@@ -286,6 +284,10 @@ int leeDeEntradaEstandard(char * buffer, int maxlen){
 ssize_t recibir(int socket, struct rcftp_msg *buffer, int buflen, struct sockaddr_storage *remote, socklen_t *remotelen) {
 	ssize_t recvsize;
 	
+    // Código anterior
+    // len = readtobuffer(bufferLectura, RCFTP_BUFLEN);
+    //         for (int i=0; i<len; ++i) sendbuffer.buffer[i] = (uint8_t) bufferLectura[i];
+
 	*remotelen = sizeof(*remote);
 	recvsize = recvfrom(socket,(char *)buffer,buflen,0,(struct sockaddr *)remote,remotelen);
 	if (recvsize<0 && errno!=EAGAIN) { // en caso de socket no bloqueante
@@ -325,6 +327,14 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
     // El primer mensaje a enviar al servidor es con flags = F_NOFLAGS
     sendbuffer.flags = F_NOFLAGS;
     // readtobuffer va a escribir en el buffer del struct sendbuffer el contenido leido
+
+    // Código anterior
+    // char bufferLectura[RCFTP_BUFLEN];
+    // ssize_t len;
+	// struct rcftp_msg	sendbuffer;
+    // len = readtobuffer(bufferLectura, RCFTP_BUFLEN);
+    //         for (ssize_t i=0; i<len; ++i) sendbuffer.buffer[i] = (uint8_t) bufferLectura[i];
+
     // Contenido del primer mensaje es leido de entrada estandars antes de iniciar bucle
 	len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
 
@@ -347,7 +357,7 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
         prevLen = len; // guarda la longitud del mensaje actual
         if (!repeat && verb) printf("Realizando envío: " ANSI_COLOR_CYAN "%d \n" ANSI_COLOR_RESET, messageOrd);
         // Enviar mensaje al servidor.
-        enviar(socket, sendbuffer, servinfo, &messageOrd);
+        enviar(socket, sendbuffer, servinfo);
     
         // Recibir respuesta del servidor
         recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
@@ -389,11 +399,24 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
 /*  algoritmo 2 (stop & wait)  */
 /**************************************************************************/
 void alg_stopwait(int socket, struct addrinfo *servinfo) {
-
+    struct sockaddr_storage	remote; // Dirección desde donde recibimos
+    socklen_t remotelen;
+	char ultimoMensaje = FALSE;
+	char ultimoMensajeConfirmado = FALSE;
+    char repeat;
+    int sockflags;
+	uint16_t	len, prevLen;
+    uint32_t    numseq = 0;
+    int         messageOrd = 0;
+	struct rcftp_msg	sendbuffer,
+                        recvbuffer;
+    ssize_t     recvbytes;
 	printf("Comunicación con algoritmo stop&wait\n");
 
-#warning FALTA IMPLEMENTAR EL ALGORITMO STOP-WAIT
-	printf("Algoritmo no implementado\n");
+    // pasamos a socket no bloqueante
+	sockflags=fcntl(socket, F_GETFL, 0);            // Obtiene el valor d elos falgs actuales
+	fcntl(socket, F_SETFL, sockflags | O_NONBLOCK); // Incluye el falg de NO Bloqueo
+
 }
 
 /**************************************************************************/
