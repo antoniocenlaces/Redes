@@ -360,7 +360,8 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
         enviar(socket, sendbuffer, servinfo);
     
         // Recibir respuesta del servidor
-        recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
+        // &remote,&remotelen
+        recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),NULL,NULL);
        
         // Aquí se debe confirmar si el mensaje recibido es válido y es la respuesta esperada
         if (mensajevalido(recvbuffer) &&
@@ -454,11 +455,11 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
         enviar(socket, sendbuffer, servinfo);
     
         // Recibir respuesta del servidor
-        recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
-        if (recvbytes != sizeof(struct rcftp_msg))
-        { // En caso de que el mensaje recibido no tenga la longitud correcta informa y continuará con nuevo envío
-            printf("Recibidos %lu bytes en lugar de los %lu esperados\n", recvbytes, sizeof(struct rcftp_msg));
-        }
+        // recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
+        // Versión de recibir par Stop&Wait
+        addtimeout();
+        esperar = TRUE;
+        
         // Aquí se debe confirmar si el mensaje recibido es válido y es la respuesta esperada
         if (mensajevalido(recvbuffer) &&
             respuestaesperada(recvbuffer, (numseq + len), ultimoMensaje) &&
