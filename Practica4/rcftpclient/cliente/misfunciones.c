@@ -458,7 +458,7 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
         // Versión de recibir par Stop&Wait
         addtimeout();
         esperar = TRUE;
-        
+        recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
         // Aquí se debe confirmar si el mensaje recibido es válido y es la respuesta esperada
         if (mensajevalido(recvbuffer) &&
             respuestaesperada(recvbuffer, (numseq + len), ultimoMensaje) &&
