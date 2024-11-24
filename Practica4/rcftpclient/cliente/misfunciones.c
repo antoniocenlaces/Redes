@@ -405,7 +405,8 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
 	char ultimoMensajeConfirmado = FALSE;
     char repeat,
          esperar;
-    int sockflags;
+    int sockflags,
+        timeouts_procesados = 0;
 	uint16_t	len, prevLen;
     uint32_t    numseq = 0;
     int         messageOrd = 0;
@@ -458,7 +459,17 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
         // Versión de recibir par Stop&Wait
         addtimeout();
         esperar = TRUE;
-        recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
+        while (esperar) {
+            recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
+            if (recvbytes > 0 && recvbytes == sizeof(struct rcftp_msg)) {
+                canceltimeout();
+                esperar = FALSE;
+            }
+            if (timeouts_procesados != timeouts_vencidos) {
+                esperar = FALSE;
+                timeouts_procesados++;
+            }
+        }
         // Aquí se debe confirmar si el mensaje recibido es válido y es la respuesta esperada
         if (mensajevalido(recvbuffer) &&
             respuestaesperada(recvbuffer, (numseq + len), ultimoMensaje) &&
