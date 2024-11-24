@@ -360,8 +360,7 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
         enviar(socket, sendbuffer, servinfo);
     
         // Recibir respuesta del servidor
-        // &remote,&remotelen
-        recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),NULL,NULL);
+        recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
        
         // Aquí se debe confirmar si el mensaje recibido es válido y es la respuesta esperada
         if (mensajevalido(recvbuffer) &&
