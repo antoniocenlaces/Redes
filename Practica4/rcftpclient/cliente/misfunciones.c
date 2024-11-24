@@ -366,29 +366,30 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
         if (mensajevalido(recvbuffer) &&
             respuestaesperada(recvbuffer, (numseq + len), ultimoMensaje) &&
             recvbytes == sizeof(struct rcftp_msg)) {
-            repeat = FALSE;
-            if (verb )
-                printf("Envío: %d" ANSI_COLOR_GREEN " todo correcto\n" ANSI_COLOR_RESET, messageOrd);
-            if (ultimoMensaje == TRUE) {
-            ultimoMensajeConfirmado = TRUE;
-            } else {
-            len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
-            if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
-                ultimoMensaje = TRUE;
-                sendbuffer.flags = F_FIN;
-            }
-            // construir el siguiente mensaje válido
-            numseq += prevLen; // suma la longitud del último enviado
-            sendbuffer.numseq=htonl(numseq); 
-            sendbuffer.len=htons(len);  // Longitud del mensaje leido por entrada standard
-            sendbuffer.next=htonl(0);   // Cliente nunca indica next
-            sendbuffer.sum=0;
-            sendbuffer.sum=xsum((char*)&sendbuffer,sizeof(sendbuffer));
-            // en este punto siguiente mensaje "correcto" está listo
-            messageOrd++;
-            }
+                repeat = FALSE;
+                if (verb )
+                    printf("Envío: %d" ANSI_COLOR_GREEN " todo correcto\n" ANSI_COLOR_RESET, messageOrd);
+                if (ultimoMensaje == TRUE) {
+                ultimoMensajeConfirmado = TRUE;
+                } else {
+                len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
+                if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
+                    ultimoMensaje = TRUE;
+                    sendbuffer.flags = F_FIN;
+                }
+                // construir el siguiente mensaje válido
+                numseq += prevLen; // suma la longitud del último enviado
+                sendbuffer.numseq=htonl(numseq); 
+                sendbuffer.len=htons(len);  // Longitud del mensaje leido por entrada standard
+                sendbuffer.next=htonl(0);   // Cliente nunca indica next
+                sendbuffer.sum=0;
+                sendbuffer.sum=xsum((char*)&sendbuffer,sizeof(sendbuffer));
+                // en este punto siguiente mensaje "correcto" está listo
+                messageOrd++;
+                }
         } else {
-            printf(ANSI_COLOR_CYAN "Repetición de envío: %d\n" ANSI_COLOR_RESET, messageOrd);
+            if (verb)
+                printf(ANSI_COLOR_CYAN "Repetición de envío: %d\n" ANSI_COLOR_RESET, messageOrd);
             repeat = TRUE;
         }
     }
@@ -459,28 +460,30 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
             printf("Recibidos %lu bytes en lugar de los %lu esperados\n", recvbytes, sizeof(struct rcftp_msg));
         }
         // Aquí se debe confirmar si el mensaje recibido es válido y es la respuesta esperada
-        if (mensajevalido(recvbuffer) && (respuestaesperada(recvbuffer, (numseq + len), ultimoMensaje))) {
-            repeat = FALSE;
-            if (verb )
-                printf("Envío: %d" ANSI_COLOR_GREEN " todo correcto\n" ANSI_COLOR_RESET, messageOrd);
-            if (ultimoMensaje == TRUE) {
-            ultimoMensajeConfirmado = TRUE;
-            } else {
-            len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
-            if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
-                ultimoMensaje = TRUE;
-                sendbuffer.flags = F_FIN;
-            }
-            // construir el siguiente mensaje válido
-            numseq += prevLen; // suma la longitud del último enviado
-            sendbuffer.numseq=htonl(numseq); 
-            sendbuffer.len=htons(len);  // Longitud del mensaje leido por entrada standard
-            sendbuffer.next=htonl(0);   // Cliente nunca indica next
-            sendbuffer.sum=0;
-            sendbuffer.sum=xsum((char*)&sendbuffer,sizeof(sendbuffer));
-            // en este punto siguiente mensaje "correcto" está listo
-            messageOrd++;
-            }
+        if (mensajevalido(recvbuffer) &&
+            respuestaesperada(recvbuffer, (numseq + len), ultimoMensaje) &&
+            recvbytes == sizeof(struct rcftp_msg)) {
+                repeat = FALSE;
+                if (verb )
+                    printf("Envío: %d" ANSI_COLOR_GREEN " todo correcto\n" ANSI_COLOR_RESET, messageOrd);
+                if (ultimoMensaje == TRUE) {
+                ultimoMensajeConfirmado = TRUE;
+                } else {
+                len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
+                if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
+                    ultimoMensaje = TRUE;
+                    sendbuffer.flags = F_FIN;
+                }
+                // construir el siguiente mensaje válido
+                numseq += prevLen; // suma la longitud del último enviado
+                sendbuffer.numseq=htonl(numseq); 
+                sendbuffer.len=htons(len);  // Longitud del mensaje leido por entrada standard
+                sendbuffer.next=htonl(0);   // Cliente nunca indica next
+                sendbuffer.sum=0;
+                sendbuffer.sum=xsum((char*)&sendbuffer,sizeof(sendbuffer));
+                // en este punto siguiente mensaje "correcto" está listo
+                messageOrd++;
+                }
         } else {
             printf(ANSI_COLOR_CYAN "Repetición de envío: %d\n" ANSI_COLOR_RESET, messageOrd);
             repeat = TRUE;
@@ -508,11 +511,13 @@ int mensajevalido(struct rcftp_msg recvbuffer) {
 	//uint16_t aux;
 	if (recvbuffer.version!=RCFTP_VERSION_1) { // versión incorrecta
 		esperado=0;
-		fprintf(stderr,"Error: recibido un mensaje con versión incorrecta\n");
+        if (verb)
+		    fprintf(stderr,"Error: recibido un mensaje con versión incorrecta\n");
 	}
 	if (issumvalid(&recvbuffer,sizeof(recvbuffer))==0) { // checksum incorrecto
 		esperado=0;
-		fprintf(stderr,"Error: recibido un mensaje con checksum incorrecto\n"); /* (esperaba ");
+        if (verb)
+		    fprintf(stderr,"Error: recibido un mensaje con checksum incorrecto\n"); /* (esperaba ");
 		aux=recvbuffer.sum;
 		recvbuffer.sum=0;
 		fprintf(stderr,"0x%x)\n",ntohs(xsum((char*)&recvbuffer,sizeof(recvbuffer))));
@@ -527,7 +532,8 @@ int mensajevalido(struct rcftp_msg recvbuffer) {
 int respuestaesperada(struct rcftp_msg recvbuffer, uint32_t numseq, char ultimoMensaje) {
     int esperado = 1;
     if (ntohl(recvbuffer.next) != numseq) {
-        fprintf(stderr, "Servidor ha enviado siguiente número de secuencia incorrecto.\n");
+        if (verb)
+            fprintf(stderr, "Servidor ha enviado siguiente número de secuencia incorrecto.\n");
         esperado = 0;
     }
     // if flag abort present, abort
@@ -535,8 +541,15 @@ int respuestaesperada(struct rcftp_msg recvbuffer, uint32_t numseq, char ultimoM
         fprintf(stderr,"Flag F_ABORT recibido\n");
         exit(1);
     }
+    // Flag Busy present
+    if (recvbuffer.flags & F_BUSY) {
+        fprintf(stderr,"Flag F_BUSY recibido\n");
+        exit(1);
+    }
+
     if ((recvbuffer.flags & F_FIN) && (!ultimoMensaje)){
-        fprintf(stderr,"Servidor ha inviado Fin de Mensaje erróneo\n");
+        if (verb)
+            fprintf(stderr,"Servidor ha inviado Fin de Mensaje erróneo\n");
         esperado = 0;
     }
     return esperado;
