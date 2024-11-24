@@ -466,10 +466,10 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
                     respuestaesperada(recvbuffer, (numseq + len), ultimoMensaje) &&
                     recvbytes == sizeof(struct rcftp_msg)){
                         canceltimeout();
+                        esperar = FALSE;
                 } else {
                     enviar(socket, sendbuffer, servinfo);
                 }
-                esperar = FALSE;
             }
             if (timeouts_procesados != timeouts_vencidos) {
                 esperar = FALSE;
