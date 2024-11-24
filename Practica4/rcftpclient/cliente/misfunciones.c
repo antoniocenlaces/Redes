@@ -406,6 +406,7 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
     char repeat,
          esperar;
     int sockflags,
+        sign,
         timeouts_procesados = 0;
 	uint16_t	len, prevLen;
     uint32_t    numseq = 0;
@@ -418,6 +419,8 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
     // pasamos a socket no bloqueante
 	sockflags=fcntl(socket, F_GETFL, 0);            // Obtiene el valor d elos falgs actuales
 	fcntl(socket, F_SETFL, sockflags | O_NONBLOCK); // Incluye el falg de NO Bloqueo
+    // Programo el comportamiento frente a señal SIGALRM
+    handle_sigalrm(sign);
 
     // El primer mensaje a enviar al servidor es con flags = F_NOFLAGS
     sendbuffer.flags = F_NOFLAGS;
