@@ -361,12 +361,11 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
     
         // Recibir respuesta del servidor
         recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
-        if (recvbytes != sizeof(struct rcftp_msg))
-        { // En caso de que el mensaje recibido no tenga la longitud correcta informa y continuará con nuevo envío
-            printf("Recibidos %lu bytes en lugar de los %lu esperados\n", recvbytes, sizeof(struct rcftp_msg));
-        }
+       
         // Aquí se debe confirmar si el mensaje recibido es válido y es la respuesta esperada
-        if (mensajevalido(recvbuffer) && (respuestaesperada(recvbuffer, (numseq + len), ultimoMensaje))) {
+        if (mensajevalido(recvbuffer) &&
+            respuestaesperada(recvbuffer, (numseq + len), ultimoMensaje) &&
+            recvbytes == sizeof(struct rcftp_msg)) {
             repeat = FALSE;
             if (verb )
                 printf("Envío: %d" ANSI_COLOR_GREEN " todo correcto\n" ANSI_COLOR_RESET, messageOrd);
@@ -403,7 +402,8 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
     socklen_t remotelen;
 	char ultimoMensaje = FALSE;
 	char ultimoMensajeConfirmado = FALSE;
-    char repeat;
+    char repeat,
+         esperar;
     int sockflags;
 	uint16_t	len, prevLen;
     uint32_t    numseq = 0;
@@ -416,6 +416,76 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
     // pasamos a socket no bloqueante
 	sockflags=fcntl(socket, F_GETFL, 0);            // Obtiene el valor d elos falgs actuales
 	fcntl(socket, F_SETFL, sockflags | O_NONBLOCK); // Incluye el falg de NO Bloqueo
+
+    // El primer mensaje a enviar al servidor es con flags = F_NOFLAGS
+    sendbuffer.flags = F_NOFLAGS;
+    // readtobuffer va a escribir en el buffer del struct sendbuffer el contenido leido
+
+    // Código anterior
+    // char bufferLectura[RCFTP_BUFLEN];
+    // ssize_t len;
+	// struct rcftp_msg	sendbuffer;
+    // len = readtobuffer(bufferLectura, RCFTP_BUFLEN);
+    //         for (ssize_t i=0; i<len; ++i) sendbuffer.buffer[i] = (uint8_t) bufferLectura[i];
+
+    // Contenido del primer mensaje es leido de entrada estandars antes de iniciar bucle
+	len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
+
+	if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
+        ultimoMensaje = TRUE;
+        sendbuffer.flags = F_FIN;
+    }
+
+	// construir el primer mensaje válido
+	sendbuffer.version=RCFTP_VERSION_1;
+	sendbuffer.numseq=htonl(numseq); // El primer mensaje comienza en el byte 0
+	sendbuffer.len=htons(len);  // Longitud del mensaje leido por entrada standard
+	sendbuffer.next=htonl(0);   // Cliente nunca indica next
+	sendbuffer.sum=0;           // checksum se calcula con sum=0
+	sendbuffer.sum=xsum((char*)&sendbuffer,sizeof(sendbuffer));
+	// en este punto el mensaje "correcto" está listo
+   
+    repeat = FALSE;
+    while (ultimoMensajeConfirmado == FALSE) {
+        prevLen = len; // guarda la longitud del mensaje actual
+        if (!repeat && verb) printf("Realizando envío: " ANSI_COLOR_CYAN "%d \n" ANSI_COLOR_RESET, messageOrd);
+        // Enviar mensaje al servidor.
+        enviar(socket, sendbuffer, servinfo);
+    
+        // Recibir respuesta del servidor
+        recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
+        if (recvbytes != sizeof(struct rcftp_msg))
+        { // En caso de que el mensaje recibido no tenga la longitud correcta informa y continuará con nuevo envío
+            printf("Recibidos %lu bytes en lugar de los %lu esperados\n", recvbytes, sizeof(struct rcftp_msg));
+        }
+        // Aquí se debe confirmar si el mensaje recibido es válido y es la respuesta esperada
+        if (mensajevalido(recvbuffer) && (respuestaesperada(recvbuffer, (numseq + len), ultimoMensaje))) {
+            repeat = FALSE;
+            if (verb )
+                printf("Envío: %d" ANSI_COLOR_GREEN " todo correcto\n" ANSI_COLOR_RESET, messageOrd);
+            if (ultimoMensaje == TRUE) {
+            ultimoMensajeConfirmado = TRUE;
+            } else {
+            len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
+            if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
+                ultimoMensaje = TRUE;
+                sendbuffer.flags = F_FIN;
+            }
+            // construir el siguiente mensaje válido
+            numseq += prevLen; // suma la longitud del último enviado
+            sendbuffer.numseq=htonl(numseq); 
+            sendbuffer.len=htons(len);  // Longitud del mensaje leido por entrada standard
+            sendbuffer.next=htonl(0);   // Cliente nunca indica next
+            sendbuffer.sum=0;
+            sendbuffer.sum=xsum((char*)&sendbuffer,sizeof(sendbuffer));
+            // en este punto siguiente mensaje "correcto" está listo
+            messageOrd++;
+            }
+        } else {
+            printf(ANSI_COLOR_CYAN "Repetición de envío: %d\n" ANSI_COLOR_RESET, messageOrd);
+            repeat = TRUE;
+        }
+    }
 
 }
 
