@@ -299,11 +299,12 @@ ssize_t recibir(int socket, struct rcftp_msg *buffer, int buflen, struct sockadd
 		fprintf(stderr,"Error: la dirección del cliente ha sido truncada\n");
 		exit(1);
 	}
-    if (verb) {
-        printf("\n");
-        printf("Mensaje RCFTP " ANSI_COLOR_MAGENTA "recibido" ANSI_COLOR_RESET ":\n");
-        print_rcftp_msg(buffer,recvsize);
-			}
+    // Al recibir no puedo imprimir directamente sin verificar si es correcto lo recibido
+    // if (verb) {
+    //     printf("\n");
+    //     printf("Mensaje RCFTP " ANSI_COLOR_MAGENTA "recibido" ANSI_COLOR_RESET ":\n");
+    //     print_rcftp_msg(buffer,recvsize);
+	// 		}
 	return recvsize;
 }
 
@@ -362,6 +363,7 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
     
         // Recibir respuesta del servidor
         recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
+        // Hay que quitar imprimir mensaje de dentro del recibir, lo debe hacer después de verificar que está correcto lo recibido
        
         // Aquí se debe confirmar si el mensaje recibido es válido y es la respuesta esperada
         if (mensajevalido(recvbuffer) &&
@@ -405,9 +407,9 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
 	char ultimoMensaje = FALSE;
 	char ultimoMensajeConfirmado = FALSE;
     char repeat,
-         esperar;
+         esperar,
+         recibidoCorrecto = FALSE;
     int sockflags,
-        sign,
         timeouts_procesados = 0;
 	uint16_t	len, prevLen;
     uint32_t    numseq = 0;
@@ -464,6 +466,7 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
         addtimeout();
         esperar = TRUE;
         while (esperar) {
+            recibidoCorrecto = FALSE;
             recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
             if (recvbytes > 0 ) {
                 if (mensajevalido(recvbuffer) &&
@@ -471,9 +474,10 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
                     recvbytes == sizeof(struct rcftp_msg)){
                         canceltimeout();
                         esperar = FALSE;
-                } else {
-                    enviar(socket, sendbuffer, servinfo);
-                }
+                        recibidoCorrecto = TRUE;
+                } // else {
+                  //  enviar(socket, sendbuffer, servinfo);
+                //}
             }
             if (timeouts_procesados != timeouts_vencidos) {
                 esperar = FALSE;
@@ -481,9 +485,12 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
             }
         }
         // Aquí se debe confirmar si el mensaje recibido es válido y es la respuesta esperada
-        if (mensajevalido(recvbuffer) &&
-            respuestaesperada(recvbuffer, (numseq + len), ultimoMensaje) &&
-            recvbytes == sizeof(struct rcftp_msg)) {
+        if (recibidoCorrecto) {
+                if (verb) {
+                    printf("\n");
+                    printf("Mensaje RCFTP " ANSI_COLOR_MAGENTA "recibido" ANSI_COLOR_RESET ":\n");
+                    print_rcftp_msg(&recvbuffer,recvbytes);
+                }
                 repeat = FALSE;
                 if (verb )
                     printf("Envío: %d" ANSI_COLOR_GREEN " todo correcto\n" ANSI_COLOR_RESET, messageOrd);
