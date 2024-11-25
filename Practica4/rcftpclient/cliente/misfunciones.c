@@ -471,7 +471,7 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
             printf( ANSI_COLOR_RED "\n\t En Bucle de espera nº: %d\n" ANSI_COLOR_RESET, contador);
             recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
             if (recvbytes == sizeof(struct rcftp_msg)) {
-                 printf( ANSI_COLOR_BLUE "\n\t\t En Bucle de espera he recibido algo coherente:\n" ANSI_COLOR_RESET, contador);
+                 printf( ANSI_COLOR_BLUE "\n\t\t En Bucle de espera he recibido algo coherente:\n" ANSI_COLOR_RESET);
                 if (verb) {
                     printf("\n");
                     printf("Mensaje RCFTP " ANSI_COLOR_MAGENTA "recibido" ANSI_COLOR_RESET ":\n");
