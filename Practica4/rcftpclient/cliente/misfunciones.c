@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #include <time.h>
 #include <sys/time.h>
 #include <math.h>
@@ -420,7 +421,7 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
 	sockflags=fcntl(socket, F_GETFL, 0);            // Obtiene el valor d elos falgs actuales
 	fcntl(socket, F_SETFL, sockflags | O_NONBLOCK); // Incluye el falg de NO Bloqueo
     // Programo el comportamiento frente a señal SIGALRM
-    handle_sigalrm(sign);
+    signal(SIGALRM,handle_sigalrm);
 
     // El primer mensaje a enviar al servidor es con flags = F_NOFLAGS
     sendbuffer.flags = F_NOFLAGS;
