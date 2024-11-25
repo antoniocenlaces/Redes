@@ -469,6 +469,11 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
             recibidoCorrecto = FALSE;
             recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
             if (recvbytes > 0 ) {
+                if (verb) {
+                    printf("\n");
+                    printf("Mensaje RCFTP " ANSI_COLOR_MAGENTA "recibido" ANSI_COLOR_RESET ":\n");
+                    print_rcftp_msg(&recvbuffer,recvbytes);
+                }
                 if (mensajevalido(recvbuffer) &&
                     respuestaesperada(recvbuffer, (numseq + len), ultimoMensaje) &&
                     recvbytes == sizeof(struct rcftp_msg)){
@@ -486,11 +491,6 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
         }
         // Aquí se debe confirmar si el mensaje recibido es válido y es la respuesta esperada
         if (recibidoCorrecto) {
-                if (verb) {
-                    printf("\n");
-                    printf("Mensaje RCFTP " ANSI_COLOR_MAGENTA "recibido" ANSI_COLOR_RESET ":\n");
-                    print_rcftp_msg(&recvbuffer,recvbytes);
-                }
                 repeat = FALSE;
                 if (verb )
                     printf("Envío: %d" ANSI_COLOR_GREEN " todo correcto\n" ANSI_COLOR_RESET, messageOrd);
