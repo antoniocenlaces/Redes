@@ -363,8 +363,12 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
     
         // Recibir respuesta del servidor
         recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
-        // Hay que quitar imprimir mensaje de dentro del recibir, lo debe hacer después de verificar que está correcto lo recibido
-       
+        // Imprime contenido del mensaje recibido
+       if (verb) {
+            printf("\n");
+            printf("Mensaje RCFTP " ANSI_COLOR_MAGENTA "recibido" ANSI_COLOR_RESET ":\n");
+            print_rcftp_msg(&recvbuffer,recvbytes);
+        }
         // Aquí se debe confirmar si el mensaje recibido es válido y es la respuesta esperada
         if (mensajevalido(recvbuffer) &&
             respuestaesperada(recvbuffer, (numseq + len), ultimoMensaje) &&
@@ -410,7 +414,7 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
          esperar,
          recibidoCorrecto = FALSE;
     int sockflags,
-        contador = 0,
+        // contador = 0,
         timeouts_procesados = 0;
 	uint16_t	len, prevLen;
     uint32_t    numseq = 0;
@@ -467,12 +471,12 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
         addtimeout();
         esperar = TRUE;
         recibidoCorrecto = FALSE;
-        contador = 0;
+        // contador = 0;
         while (esperar) {
-            printf( ANSI_COLOR_RED "\n\t En Bucle de espera nº: %d\n" ANSI_COLOR_RESET, contador);
+            // printf( ANSI_COLOR_RED "\n\t En Bucle de espera nº: %d\n" ANSI_COLOR_RESET, contador);
             recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
             if (recvbytes == sizeof(struct rcftp_msg)) {
-                 printf( ANSI_COLOR_BLUE "\n\t\t En Bucle de espera he recibido algo coherente:\n" ANSI_COLOR_RESET);
+                // printf( ANSI_COLOR_BLUE "\n\t\t En Bucle de espera he recibido algo coherente:\n" ANSI_COLOR_RESET);
                 if (verb) {
                     printf("\n");
                     printf("Mensaje RCFTP " ANSI_COLOR_MAGENTA "recibido" ANSI_COLOR_RESET ":\n");
@@ -487,11 +491,11 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
                   //  enviar(socket, sendbuffer, servinfo);
                 //}
             }
-            if (timeouts_procesados != timeouts_vencidos) {
+            if (timeouts_procesados != timeouts_vencidos) { // Algún timeout ha llegado a su fin
                 esperar = FALSE;
                 timeouts_procesados++;
             }
-            contador++;
+            // contador++;
         }
         // Aquí se debe confirmar si el mensaje recibido es válido y es la respuesta esperada
         if (recibidoCorrecto) {
@@ -517,7 +521,8 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
                 messageOrd++;
                 }
         } else {
-            printf(ANSI_COLOR_CYAN "Repetición de envío: %d\n" ANSI_COLOR_RESET, messageOrd);
+            if (verb)
+                printf(ANSI_COLOR_CYAN "Repetición de envío: %d\n" ANSI_COLOR_RESET, messageOrd);
             repeat = TRUE;
         }
     }
