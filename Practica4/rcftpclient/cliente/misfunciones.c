@@ -494,6 +494,8 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
             if (timeouts_procesados != timeouts_vencidos) { // Algún timeout ha llegado a su fin
                 esperar = FALSE;
                 timeouts_procesados++;
+                if (verb)
+                    printf( ANSI_COLOR_RED "\nHa vencido un Timer\n" ANSI_COLOR_RESET);
             }
             // contador++;
         }
