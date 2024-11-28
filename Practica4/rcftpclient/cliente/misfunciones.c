@@ -1,6 +1,6 @@
 /****************************************************************************/
 /* Plantilla para implementación de funciones del cliente (rcftpclient)     */
-/* $Revision$ */
+/* $Revision: 2$ */
 /* Aunque se permite la modificación de cualquier parte del código, se */
 /* recomienda modificar solamente este fichero y su fichero de cabeceras asociado. */
 /****************************************************************************/
