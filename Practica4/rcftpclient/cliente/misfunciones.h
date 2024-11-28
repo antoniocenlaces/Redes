@@ -1,6 +1,6 @@
 /****************************************************************************/
 /* Plantilla para cabeceras de funciones del cliente (rcftpclient)          */
-/* Plantilla $Revision$ */
+/* Plantilla $Revision: 2$ */
 /* Autor: González Almela, Antonio José */
 /****************************************************************************/
 
