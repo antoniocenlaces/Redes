@@ -48,6 +48,8 @@ int mensajevalido(struct rcftp_msg recvbuffer);
  */
 int respuestaesperada(struct rcftp_msg recvbuffer, uint32_t numseq, char ultimoMensaje);
 
+int respuestaesperadaGBN(struct rcftp_msg recvbuffer, uint32_t lastByteInWindow, char *finRecibido)
+
 /** 
  * enviar mensaje almacenado en sendbuffer por socket a la dirección especificada en servinfo
  * además imprime el nº de bytes enviados, el número de orden especificado en messageOrd

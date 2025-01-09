@@ -606,7 +606,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             // mesajevalido() comprueba versión y checksum
 
             if (mensajevalido(recvbuffer) &&
-                respuestaGBN(recvbuffer, lastByteInWindow, &finRecibido)){
+                respuestaesperadaGBN(recvbuffer, lastByteInWindow, &finRecibido)){
                     canceltimeout();
                     freewindow(ntohl(recvbuffer.next));
                     if (finRecibido == TRUE) ultimoMensajeConfirmado = TRUE;
@@ -681,7 +681,7 @@ int respuestaesperada(struct rcftp_msg recvbuffer, uint32_t numseq, char ultimoM
 /**************************************************************************/
 /* Verifica numero de secuencia, flags */
 /**************************************************************************/
-int respuestaGBN(struct rcftp_msg recvbuffer, uint32_t lastByteInWindow, char *finRecibido) {
+int respuestaesperadaGBN(struct rcftp_msg recvbuffer, uint32_t lastByteInWindow, char *finRecibido) {
     int esperado = 1;
     // Hay que buscar si el recvbuffer tiene .next - len de alguno almacenado en sentWindow = .numseq almacenado
     // ese que coincide hay que marcarlo, porque se puede liberar sentWindow hasta ese
