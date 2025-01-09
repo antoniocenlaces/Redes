@@ -564,6 +564,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
 
     // El primer mensaje a enviar al servidor es con flags = F_NOFLAGS
     sendbuffer.flags = F_NOFLAGS;
+    sendbuffer.version=RCFTP_VERSION_1;
     // Establece el tamaño de la ventana de emisión en bytes
     setwindowsize(window);
     while (ultimoMensajeConfirmado == FALSE) {
