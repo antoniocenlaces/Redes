@@ -543,19 +543,14 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
 	char ultimoMensaje = FALSE; // TRUE: no hay nada más a leer de entrada estandard; FALSE: aún quedan datos por leer
 	char ultimoMensajeConfirmado = FALSE;
     char finRecibido;
-    char repeat,
-         esperar,
-         recibidoCorrecto = FALSE;
-    int libera = -1;
     int sockflags,
         // contador = 0,
-        timeouts_procesados = 0;
-	uint16_t	len, len2,
-                prevLen;
+        timeouts_procesados = 0,
+        lenMsgWindow;
+	uint16_t	len, len2;
     uint32_t    numseq = 0,
                 numseq2,
                 lastByteInWindow;
-    int         messageOrd = 0;
 	struct rcftp_msg	sendbuffer,
                         recvbuffer;
     ssize_t     recvbytes;
@@ -571,7 +566,6 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
     sendbuffer.flags = F_NOFLAGS;
     // Establece el tamaño de la ventana de emisión en bytes
     setwindowsize(window);
-    repeat = FALSE;
     while (ultimoMensajeConfirmado == FALSE) {
         if ((getfreespace() - len) > 0 && !ultimoMensaje){
             len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
@@ -587,13 +581,12 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             sendbuffer.sum=xsum((char*)&sendbuffer,sizeof(sendbuffer));
             
             // en este punto siguiente mensaje "correcto" está listo
-            messageOrd++;
             // if (!repeat && verb) printf("Realizando envío: " ANSI_COLOR_CYAN "%d \n" ANSI_COLOR_RESET, messageOrd);
             // Enviar mensaje al servidor.
             enviar(socket, sendbuffer, servinfo);
             addtimeout();
             // Apuntar mensaje enviado en ventana de emisión
-            len2 = addsentdatatowindow(&sendbuffer.buffer,&sendbuffer.len);
+            len2 = addsentdatatowindow((char *)&sendbuffer.buffer,(int)ntohs(sendbuffer.len));
             // Guarda el último valor de numseq que se ha almacenado en ventana
             if (len > 0) lastByteInWindow = numseq + (uint32_t) (len - 1);
                 else lastByteInWindow = numseq - 1;
@@ -613,17 +606,18 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             // mesajevalido() comprueba versión y checksum
 
             if (mensajevalido(recvbuffer) &&
-                respuestaesperadaGBN(recvbuffer, lastByteInWindow, &finRecibido)){
+                respuestaGBN(recvbuffer, lastByteInWindow, &finRecibido)){
                     canceltimeout();
                     freewindow(ntohl(recvbuffer.next));
                     if (finRecibido == TRUE) ultimoMensajeConfirmado = TRUE;
             } 
         }
         if (timeouts_procesados != timeouts_vencidos) { // Algún timeout ha llegado a su fin: reenvio del mensaje más antiguo en ventana
-            numseq2 = getdatatoresend((char *) sendbuffer.buffer, &len2);
+            lenMsgWindow = (int) len2;
+            numseq2 = getdatatoresend((char *) sendbuffer.buffer, &lenMsgWindow);
              // Construye el mensaje a ser enviado
             sendbuffer.numseq=htonl(numseq2); 
-            sendbuffer.len=htons(len2);  // Longitud del mensaje leido por entrada standard
+            sendbuffer.len=htons((uint16_t)lenMsgWindow);  // Longitud del mensaje leido por entrada standard
             sendbuffer.next=htonl(0);   // Cliente nunca indica next
             sendbuffer.sum=0;
             sendbuffer.sum=xsum((char*)&sendbuffer,sizeof(sendbuffer));
@@ -687,7 +681,7 @@ int respuestaesperada(struct rcftp_msg recvbuffer, uint32_t numseq, char ultimoM
 /**************************************************************************/
 /* Verifica numero de secuencia, flags */
 /**************************************************************************/
-int respuestaesperadaGBN(struct rcftp_msg recvbuffer, uint32_t lastByteInWindow, char *finRecibido) {
+int respuestaGBN(struct rcftp_msg recvbuffer, uint32_t lastByteInWindow, char *finRecibido) {
     int esperado = 1;
     // Hay que buscar si el recvbuffer tiene .next - len de alguno almacenado en sentWindow = .numseq almacenado
     // ese que coincide hay que marcarlo, porque se puede liberar sentWindow hasta ese
