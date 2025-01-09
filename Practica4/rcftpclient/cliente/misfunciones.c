@@ -314,7 +314,7 @@ ssize_t recibir(int socket, struct rcftp_msg *buffer, int buflen, struct sockadd
 void alg_basico(int socket, struct addrinfo *servinfo) {
     struct sockaddr_storage	remote; // Dirección desde donde recibimos
     socklen_t remotelen;
-	char ultimoMensaje = FALSE;
+	char ultimoMensaje = FALSE; // TRUE: no hay nada más a leer de entrada estandard; FALSE: aún quedan datos por leer
 	char ultimoMensajeConfirmado = FALSE;
     char repeat;
 	uint16_t	len, prevLen;
@@ -408,9 +408,12 @@ void alg_basico(int socket, struct addrinfo *servinfo) {
 void alg_stopwait(int socket, struct addrinfo *servinfo) {
     struct sockaddr_storage	remote; // Dirección desde donde recibimos
     socklen_t remotelen;
-	char ultimoMensaje = FALSE;
+	char ultimoMensaje = FALSE; // TRUE: no hay nada más a leer de entrada estandard;
+                                // FALSE: aún quedan datos por leer
 	char ultimoMensajeConfirmado = FALSE;
-    char repeat,
+    char repeat, // TRUE: no ha llegado respuesta del servidor a último mensaje,
+                 // hay que volver a enviar el mensaje
+                 // FALSE: no hay que repetir mensaje
          esperar,
          recibidoCorrecto = FALSE;
     int sockflags,
@@ -535,11 +538,102 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
 /*  algoritmo 3 (ventana deslizante)  */
 /**************************************************************************/
 void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
-
+    struct sockaddr_storage	remote; // Dirección desde donde recibimos
+    socklen_t remotelen;
+	char ultimoMensaje = FALSE; // TRUE: no hay nada más a leer de entrada estandard; FALSE: aún quedan datos por leer
+	char ultimoMensajeConfirmado = FALSE;
+    char finRecibido;
+    char repeat,
+         esperar,
+         recibidoCorrecto = FALSE;
+    int libera = -1;
+    int sockflags,
+        // contador = 0,
+        timeouts_procesados = 0;
+	uint16_t	len, len2,
+                prevLen;
+    uint32_t    numseq = 0,
+                numseq2,
+                lastByteInWindow;
+    int         messageOrd = 0;
+	struct rcftp_msg	sendbuffer,
+                        recvbuffer;
+    ssize_t     recvbytes;
 	printf("Comunicación con algoritmo go-back-n\n");
 
-#warning FALTA IMPLEMENTAR EL ALGORITMO GO-BACK-N
-	printf("Algoritmo no implementado\n");
+    // pasamos a socket no bloqueante
+	sockflags=fcntl(socket, F_GETFL, 0);            // Obtiene el valor d elos falgs actuales
+	fcntl(socket, F_SETFL, sockflags | O_NONBLOCK); // Incluye el falg de NO Bloqueo
+    // Programo el comportamiento frente a señal SIGALRM
+    signal(SIGALRM,handle_sigalrm);
+
+    // El primer mensaje a enviar al servidor es con flags = F_NOFLAGS
+    sendbuffer.flags = F_NOFLAGS;
+    // Establece el tamaño de la ventana de emisión en bytes
+    setwindowsize(window);
+    repeat = FALSE;
+    while (ultimoMensajeConfirmado == FALSE) {
+        if ((getfreespace() - len) > 0 && !ultimoMensaje){
+            len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
+            if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
+                ultimoMensaje = TRUE;
+                sendbuffer.flags = F_FIN;
+            }
+            // Construye el mensaje a ser enviado
+            sendbuffer.numseq=htonl(numseq); 
+            sendbuffer.len=htons(len);  // Longitud del mensaje leido por entrada standard
+            sendbuffer.next=htonl(0);   // Cliente nunca indica next
+            sendbuffer.sum=0;
+            sendbuffer.sum=xsum((char*)&sendbuffer,sizeof(sendbuffer));
+            
+            // en este punto siguiente mensaje "correcto" está listo
+            messageOrd++;
+            // if (!repeat && verb) printf("Realizando envío: " ANSI_COLOR_CYAN "%d \n" ANSI_COLOR_RESET, messageOrd);
+            // Enviar mensaje al servidor.
+            enviar(socket, sendbuffer, servinfo);
+            addtimeout();
+            // Apuntar mensaje enviado en ventana de emisión
+            len2 = addsentdatatowindow(&sendbuffer.buffer,&sendbuffer.len);
+            // Guarda el último valor de numseq que se ha almacenado en ventana
+            if (len > 0) lastByteInWindow = numseq + (uint32_t) (len - 1);
+                else lastByteInWindow = numseq - 1;
+            // Siguiente nº de secuencia a enviar será aumentar en len el actual
+            numseq += len;
+        }
+
+        // printf( ANSI_COLOR_RED "\n\t En Bucle de espera nº: %d\n" ANSI_COLOR_RESET, contador);
+        recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
+        if (recvbytes == sizeof(struct rcftp_msg)) {
+            // printf( ANSI_COLOR_BLUE "\n\t\t En Bucle de espera he recibido algo coherente:\n" ANSI_COLOR_RESET);
+            if (verb) {
+                printf("\n");
+                printf("Mensaje RCFTP " ANSI_COLOR_MAGENTA "recibido" ANSI_COLOR_RESET ":\n");
+                print_rcftp_msg(&recvbuffer,recvbytes);
+            }
+            // mesajevalido() comprueba versión y checksum
+
+            if (mensajevalido(recvbuffer) &&
+                respuestaesperadaGBN(recvbuffer, lastByteInWindow, &finRecibido)){
+                    canceltimeout();
+                    freewindow(ntohl(recvbuffer.next));
+                    if (finRecibido == TRUE) ultimoMensajeConfirmado = TRUE;
+            } 
+        }
+        if (timeouts_procesados != timeouts_vencidos) { // Algún timeout ha llegado a su fin: reenvio del mensaje más antiguo en ventana
+            numseq2 = getdatatoresend((char *) sendbuffer.buffer, &len2);
+             // Construye el mensaje a ser enviado
+            sendbuffer.numseq=htonl(numseq2); 
+            sendbuffer.len=htons(len2);  // Longitud del mensaje leido por entrada standard
+            sendbuffer.next=htonl(0);   // Cliente nunca indica next
+            sendbuffer.sum=0;
+            sendbuffer.sum=xsum((char*)&sendbuffer,sizeof(sendbuffer));
+            enviar(socket, sendbuffer, servinfo);
+            addtimeout();
+            timeouts_procesados++;
+            if (verb)
+                printf( ANSI_COLOR_RED "\nHa vencido un Timer\n" ANSI_COLOR_RESET);
+        }
+    }
 }
 
 /**************************************************************************/
@@ -556,11 +650,7 @@ int mensajevalido(struct rcftp_msg recvbuffer) {
 	if (issumvalid(&recvbuffer,sizeof(recvbuffer))==0) { // checksum incorrecto
 		esperado=0;
         if (verb)
-		    fprintf(stderr,"Error: recibido un mensaje con checksum incorrecto\n"); /* (esperaba ");
-		aux=recvbuffer.sum;
-		recvbuffer.sum=0;
-		fprintf(stderr,"0x%x)\n",ntohs(xsum((char*)&recvbuffer,sizeof(recvbuffer))));
-		recvbuffer.sum=aux;*/
+		    fprintf(stderr,"Error: recibido un mensaje con checksum incorrecto\n");
 	}
 	return esperado;
 }
@@ -591,5 +681,43 @@ int respuestaesperada(struct rcftp_msg recvbuffer, uint32_t numseq, char ultimoM
             fprintf(stderr,"Servidor ha inviado Fin de Mensaje erróneo\n");
         esperado = 0;
     }
+    return esperado;
+}
+
+/**************************************************************************/
+/* Verifica numero de secuencia, flags */
+/**************************************************************************/
+int respuestaesperadaGBN(struct rcftp_msg recvbuffer, uint32_t lastByteInWindow, char *finRecibido) {
+    int esperado = 1;
+    // Hay que buscar si el recvbuffer tiene .next - len de alguno almacenado en sentWindow = .numseq almacenado
+    // ese que coincide hay que marcarlo, porque se puede liberar sentWindow hasta ese
+    // while (i < mensajesEnviados && encontrado == 0)  {
+    //     if ((ntohl(recvbuffer.next) - ntohs(sentWindow[i].len)) == ntohl(sentWindow[i].numseq)) 
+    //         {
+    //             encontrado=1;
+    //             *libera = i;
+    //         }
+    //         else
+    //             ++i;
+    // }
+    if ((ntohl(recvbuffer.next)-1) > lastByteInWindow) { // Se ha recibido una respuesta que indica confirmación de algún mensaje
+                                                          // que está en la ventana esperando confirmación
+        esperado = 0;
+    }
+    // if flag abort present, abort
+    if (recvbuffer.flags & F_ABORT) {
+        fprintf(stderr,"Flag F_ABORT recibido\n");
+        //exit(1);
+        esperado = 0;
+    }
+    // Flag Busy present
+    if (recvbuffer.flags & F_BUSY) {
+        fprintf(stderr,"Flag F_BUSY recibido\n");
+        // exit(1);
+        esperado = 0;
+    }
+
+    if (recvbuffer.flags & F_FIN)  *finRecibido = TRUE;
+    
     return esperado;
 }

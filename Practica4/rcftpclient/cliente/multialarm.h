@@ -65,9 +65,11 @@ void settimeoutduration(unsigned long usec, unsigned long usleep);
 int addtimeout();
 
 /**
- * Actualiza el vector de alarmas pendientes, los timeouts vencidos y programa la siguiente alarma, si existe. Debe llamarse desde el programa principal para cancelar un timeout (el más antiguo) que aún no ha vencido.
+ * Actualiza el vector de alarmas pendientes, los timeouts vencidos y programa la siguiente alarma, si existe. 
+ * Debe llamarse desde el programa principal para cancelar un timeout (el más antiguo) que aún no ha vencido.
  *
- * Además de lo anterior, aunque lo correcto sería usar esta función desde el programa principal cada vez que saltara la alarma, por legibilidad se llama dentro del gestor de interrupción de alarma, con lo que al vencer un timeout no es necesario realizar la llamada.
+ * Además de lo anterior, aunque lo correcto sería usar esta función desde el programa principal cada vez que saltara la alarma, 
+ * por legibilidad se llama dentro del gestor de interrupción de alarma, con lo que al vencer un timeout no es necesario realizar la llamada.
  *
  * @return 1: timeout cancelado; 0: no hay ningún timeout programado
  */
