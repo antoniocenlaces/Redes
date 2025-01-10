@@ -589,7 +589,9 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             // En caso de que vaya a enviar el mensaje de FIN después he de quitar el flag, por si quedaban mensajes en la ventana a ser reenviados
             enviar(socket, sendbuffer, servinfo);
             // Con la siguiente condición el falg de FIN se envía solo una vez
-            if (ultimoMensaje) sendbuffer.flags = F_NOFLAGS;
+            // if (ultimoMensaje) sendbuffer.flags = F_NOFLAGS;
+            // Hay que buscar la forma de cuando se envía el último mensaje dejar apuntado su len y en qué byte de vemision está
+            // de forma que se pueda comparar y al volver a enviar ese mensaje se active de nuevo el flag FIN
             addtimeout();
             // Apuntar mensaje enviado en ventana de emisión
             len2 = addsentdatatowindow((char *)&sendbuffer.buffer,(int)ntohs(sendbuffer.len), &firstByteInWindow);
