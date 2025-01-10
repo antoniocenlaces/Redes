@@ -704,7 +704,7 @@ int respuestaesperadaGBN(struct rcftp_msg recvbuffer, uint32_t lastByteInWindow,
     //         else
     //             ++i;
     // }
-    if ((ntohl(recvbuffer.next)-1) > lastByteInWindow) { // Se ha recibido una respuesta que indica confirmación de algún mensaje
+    if ((ntohl(recvbuffer.next)-1 > lastByteInWindow) && (((unsigned int)(ntohl(recvbuffer.next))) % 512 = 0)) { // Se ha recibido una respuesta que indica confirmación de algún mensaje
                                                           // que está en la ventana esperando confirmación
         esperado = 0;
     }
