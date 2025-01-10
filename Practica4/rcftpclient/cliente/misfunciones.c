@@ -710,7 +710,7 @@ int respuestaesperadaGBN(struct rcftp_msg recvbuffer, uint32_t firstByteInWindow
     printf(ANSI_COLOR_RED "Desde REGBN---------\n"ANSI_COLOR_RESET);
     printf("Los valores para comparar son firstByteInWindow: %d, lastByteInWindow %d\n",firstByteInWindow,lastByteInWindow);
     printf("Y el next que ha enviado servidor: %d\n", ntohl(recvbuffer.next));
-    if ((ntohl(recvbuffer.next)-1 > lastByteInWindow) || (ntohl(recvbuffer.next)<firstByteInWindow) || (ntohl(recvbuffer.next) % 512 != 0)) { // Se ha recibido una respuesta que indica confirmación de algún mensaje
+    if ((ntohl(recvbuffer.next)-1 > lastByteInWindow) || (ntohl(recvbuffer.next)-1<firstByteInWindow) || (ntohl(recvbuffer.next) % 512 != 0)) { // Se ha recibido una respuesta que indica confirmación de algún mensaje
                                                           // que está en la ventana esperando confirmación
         esperado = 0;
     }
