@@ -550,8 +550,8 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
 	uint16_t	len, len2;
     uint32_t    numseq = 0,
                 numseq2,
-                lastByteInWindow,
-                firstByteInWindow;
+                lastByteInWindow = 0,
+                firstByteInWindow = 0;
 	struct rcftp_msg	sendbuffer,
                         recvbuffer;
     ssize_t     recvbytes;
@@ -707,6 +707,9 @@ int respuestaesperadaGBN(struct rcftp_msg recvbuffer, uint32_t firstByteInWindow
     //         else
     //             ++i;
     // }
+    printf(ANSI_COLOR_RED "Desde REGBN---------\n"ANSI_COLOR_RESET);
+    printf("Los valores para comparar son firstByteInWindow: %d, lastByteInWindow %d\n",firstByteInWindow,lastByteInWindow);
+    printf("Y el next que ha enviado servidor: %d\n", ntohl(recvbuffer.next));
     if ((ntohl(recvbuffer.next)-1 > lastByteInWindow) || (ntohl(recvbuffer.next)<firstByteInWindow) || (ntohl(recvbuffer.next) % 512 != 0)) { // Se ha recibido una respuesta que indica confirmación de algún mensaje
                                                           // que está en la ventana esperando confirmación
         esperado = 0;
@@ -725,6 +728,6 @@ int respuestaesperadaGBN(struct rcftp_msg recvbuffer, uint32_t firstByteInWindow
     }
 
     if (recvbuffer.flags & F_FIN)  *finRecibido = TRUE;
-    
+    printf(ANSI_COLOR_RED "Fin de REGBN---------  con esperado= %d \n" ANSI_COLOR_RESET,esperado);
     return esperado;
 }
