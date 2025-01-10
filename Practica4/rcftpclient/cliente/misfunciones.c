@@ -588,6 +588,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             addtimeout();
             // Apuntar mensaje enviado en ventana de emisión
             len2 = addsentdatatowindow((char *)&sendbuffer.buffer,(int)ntohs(sendbuffer.len));
+            printf(ANSI_COLOR_GREEN "Añadido el paquete con numseq: %d con len=%d\n" ANSI_COLOR_RESET,numseq,len2);
             // Guarda el último valor de numseq que se ha almacenado en ventana
             if (len > 0) lastByteInWindow = numseq + (uint32_t) (len - 1);
                 else lastByteInWindow = numseq - 1;
@@ -610,12 +611,16 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
                 respuestaesperadaGBN(recvbuffer, lastByteInWindow, &finRecibido)){
                     canceltimeout();
                     freewindow(ntohl(recvbuffer.next));
+                    printf("El mensaje recibido de servidor es correcto y pide next: %d\n",ntohl(recvbuffer.next));
                     if (finRecibido == TRUE) ultimoMensajeConfirmado = TRUE;
             } 
         }
         if (timeouts_procesados != timeouts_vencidos) { // Algún timeout ha llegado a su fin: reenvio del mensaje más antiguo en ventana
-            lenMsgWindow = (int) len2;
+            if (verb)
+                printf( ANSI_COLOR_RED "\nHa vencido un Timer\n" ANSI_COLOR_RESET);
+            lenMsgWindow = (int) 512;
             numseq2 = getdatatoresend((char *) sendbuffer.buffer, &lenMsgWindow);
+            printf( ANSI_COLOR_RED "He pedido para recuperar el msg más antiguo en ventana que tiene numseq: %d y len=%d\n" ANSI_COLOR_RESET,numseq2,lenMsgWindow);
              // Construye el mensaje a ser enviado
             sendbuffer.numseq=htonl(numseq2); 
             sendbuffer.len=htons((uint16_t)lenMsgWindow);  // Longitud del mensaje leido por entrada standard
@@ -625,8 +630,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             enviar(socket, sendbuffer, servinfo);
             addtimeout();
             timeouts_procesados++;
-            if (verb)
-                printf( ANSI_COLOR_RED "\nHa vencido un Timer\n" ANSI_COLOR_RESET);
+            
         }
     }
 }
