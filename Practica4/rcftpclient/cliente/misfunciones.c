@@ -542,7 +542,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
     socklen_t remotelen;
 	char ultimoMensaje = FALSE; // TRUE: no hay nada más a leer de entrada estandard; FALSE: aún quedan datos por leer
 	char ultimoMensajeConfirmado = FALSE;
-    char finRecibido;
+    char finRecibido = FALSE;
     int sockflags,
         // contador = 0,
         timeouts_procesados = 0,
@@ -620,8 +620,8 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
                     printf(ANSI_COLOR_BLUE "Rutina borrar ventana dice que primer byte es: %d\n" ANSI_COLOR_RESET,firstByteInWindow);
                     printf("Se libera ventana de emisión hasta el next-1 anterior y queda\n");
                     printvemision();
-                    if (finRecibido == TRUE) ultimoMensajeConfirmado = TRUE;
-            } 
+            }
+            if (finRecibido == TRUE) ultimoMensajeConfirmado = TRUE;
         }
         if (timeouts_procesados != timeouts_vencidos) { // Algún timeout ha llegado a su fin: reenvio del mensaje más antiguo en ventana
             if (verb)
