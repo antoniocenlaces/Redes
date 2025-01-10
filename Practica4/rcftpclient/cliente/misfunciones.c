@@ -550,7 +550,8 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
 	uint16_t	len, len2;
     uint32_t    numseq = 0,
                 numseq2,
-                lastByteInWindow;
+                lastByteInWindow,
+                firstByteInWindow;
 	struct rcftp_msg	sendbuffer,
                         recvbuffer;
     ssize_t     recvbytes;
@@ -588,7 +589,8 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             enviar(socket, sendbuffer, servinfo);
             addtimeout();
             // Apuntar mensaje enviado en ventana de emisión
-            len2 = addsentdatatowindow((char *)&sendbuffer.buffer,(int)ntohs(sendbuffer.len));
+            len2 = addsentdatatowindow((char *)&sendbuffer.buffer,(int)ntohs(sendbuffer.len), &firstByteInWindow);
+            printf(ANSI_COLOR_GREEN "Rutina añadir dice que primer byte es: %d\n" ANSI_COLOR_RESET,firstByteInWindow);
             printf(ANSI_COLOR_GREEN "Añadido el paquete con numseq: %d con len=%d\n" ANSI_COLOR_RESET "Ventana queda así:\n",numseq,len2);
             printvemision();
             // Guarda el último valor de numseq que se ha almacenado en ventana
@@ -610,11 +612,12 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             // mesajevalido() comprueba versión y checksum
 
             if (mensajevalido(recvbuffer) &&
-                respuestaesperadaGBN(recvbuffer, lastByteInWindow, &finRecibido)){
+                respuestaesperadaGBN(recvbuffer, firstByteInWindow, lastByteInWindow, &finRecibido)){
                     canceltimeout();
-                    freewindow(ntohl(recvbuffer.next));
+                    freewindow(ntohl(recvbuffer.next), &firstByteInWindow);
                     printf(ANSI_COLOR_BLUE "El mensaje recibido de servidor es correcto y pide next: %d\n" ANSI_COLOR_RESET,ntohl(recvbuffer.next));
                     printf("El lastByteInWindow que he usado para comparar: %d\n",lastByteInWindow);
+                    printf(ANSI_COLOR_BLUE "Rutina borrar ventana dice que primer byte es: %d\n" ANSI_COLOR_RESET,firstByteInWindow);
                     printf("Se libera ventana de emisión hasta el next-1 anterior y queda\n");
                     printvemision();
                     if (finRecibido == TRUE) ultimoMensajeConfirmado = TRUE;
@@ -691,7 +694,7 @@ int respuestaesperada(struct rcftp_msg recvbuffer, uint32_t numseq, char ultimoM
 /**************************************************************************/
 /* Verifica numero de secuencia, flags */
 /**************************************************************************/
-int respuestaesperadaGBN(struct rcftp_msg recvbuffer, uint32_t lastByteInWindow, char *finRecibido) {
+int respuestaesperadaGBN(struct rcftp_msg recvbuffer, uint32_t firstByteInWindow, uint32_t lastByteInWindow, char *finRecibido) {
     int esperado = 1;
     // Hay que buscar si el recvbuffer tiene .next - len de alguno almacenado en sentWindow = .numseq almacenado
     // ese que coincide hay que marcarlo, porque se puede liberar sentWindow hasta ese
@@ -704,7 +707,7 @@ int respuestaesperadaGBN(struct rcftp_msg recvbuffer, uint32_t lastByteInWindow,
     //         else
     //             ++i;
     // }
-    if ((ntohl(recvbuffer.next)-1 > lastByteInWindow) && (ntohl(recvbuffer.next) % 512 == 0)) { // Se ha recibido una respuesta que indica confirmación de algún mensaje
+    if ((ntohl(recvbuffer.next)-1 > lastByteInWindow) || (ntohl(recvbuffer.next)<firstByteInWindow) || (ntohl(recvbuffer.next) % 512 != 0)) { // Se ha recibido una respuesta que indica confirmación de algún mensaje
                                                           // que está en la ventana esperando confirmación
         esperado = 0;
     }

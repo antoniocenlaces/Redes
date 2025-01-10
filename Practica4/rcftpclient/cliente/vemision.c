@@ -71,7 +71,7 @@ int getfreespace() {
 }
 
 
-int addsentdatatowindow(char * data, int len) {
+int addsentdatatowindow(char * data, int len, uint32_t* numseqfirstDev) {
 	if (getfreespace()<len) { // no cabe
 		//return 0;
 		fprintf(stderr,"addsentdatatowindow: intentando añadir más datos (%d B) que el libre (%d B) de la ventana de emisión\n",len,getfreespace());
@@ -85,12 +85,13 @@ int addsentdatatowindow(char * data, int len) {
 		}
 		lastelem=(lastelem+len)%totalelems;
 		vvacia=0;
+		*numseqfirstDev = numseqfirst;
 		return len;
 	}
 }
 
 // libera hasta next (no incluido)
-void freewindow(uint32_t next) {
+void freewindow(uint32_t next, uint32_t* numseqfirstDev) {
 	if (((next<=numseqfirst) && (numseqfirst<(uint32_t)(numseqfirst+totalelems-getfreespace()))) // next menor
 			|| (next>(uint32_t)(numseqfirst+totalelems-getfreespace()))) { // next mayor
 		fprintf(stderr,"freewindow: intentando liberar datos (hasta el número de secuencia %d) no almacenados en la ventana de emisión [%d,%d]\n",next-1,numseqfirst,numseqfirst+totalelems-getfreespace());
@@ -98,6 +99,7 @@ void freewindow(uint32_t next) {
 	} else { // ok
 		firstelem=(firstelem+(next-numseqfirst))%totalelems;
 		numseqfirst=next;
+		*numseqfirstDev = numseqfirst;
 		if (firstelem==lastelem) {
 			vvacia=1;
 			resendelem=firstelem;

@@ -57,13 +57,13 @@ int getfreespace();
  * @param[in] longitud de datos a añadir
  * @return longitud de datos añadidos (=longitud de datos a añadir)
  */
-int addsentdatatowindow(char * data, int len);
+int addsentdatatowindow(char * data, int len, uint32_t* numseqfirstDev);
 
 /**
  * Libera espacio en la ventana de emisión
  * @param[in] número de secuencia (no incluido) hasta el que liberar
  */
-void freewindow(uint32_t next);
+void freewindow(uint32_t next, uint32_t* numseqfirstDev);
 
 /**
  * Pide datos para reenviar
