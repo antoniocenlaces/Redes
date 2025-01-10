@@ -586,7 +586,10 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             // en este punto siguiente mensaje "correcto" está listo
             // if (!repeat && verb) printf("Realizando envío: " ANSI_COLOR_CYAN "%d \n" ANSI_COLOR_RESET, messageOrd);
             // Enviar mensaje al servidor.
+            // En caso de que vaya a enviar el mensaje de FIN después he de quitar el flag, por si quedaban mensajes en la ventana a ser reenviados
             enviar(socket, sendbuffer, servinfo);
+            // Con la siguiente condición el falg de FIN se envía solo una vez
+            if (ultimoMensaje) sendbuffer.flags = F_NOFLAGS;
             addtimeout();
             // Apuntar mensaje enviado en ventana de emisión
             len2 = addsentdatatowindow((char *)&sendbuffer.buffer,(int)ntohs(sendbuffer.len), &firstByteInWindow);
