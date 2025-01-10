@@ -567,6 +567,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
     sendbuffer.version=RCFTP_VERSION_1;
     // Establece el tamaño de la ventana de emisión en bytes
     setwindowsize(window);
+    printf("Tamaño de ventana fijado en: %d Bytes\n",window);
     while (ultimoMensajeConfirmado == FALSE) {
         if ((getfreespace() - len) > 0 && !ultimoMensaje){
             len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
@@ -588,7 +589,8 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             addtimeout();
             // Apuntar mensaje enviado en ventana de emisión
             len2 = addsentdatatowindow((char *)&sendbuffer.buffer,(int)ntohs(sendbuffer.len));
-            printf(ANSI_COLOR_GREEN "Añadido el paquete con numseq: %d con len=%d\n" ANSI_COLOR_RESET,numseq,len2);
+            printf(ANSI_COLOR_GREEN "Añadido el paquete con numseq: %d con len=%d\n" ANSI_COLOR_RESET "Ventana queda así:\n",numseq,len2);
+            printvemision();
             // Guarda el último valor de numseq que se ha almacenado en ventana
             if (len > 0) lastByteInWindow = numseq + (uint32_t) (len - 1);
                 else lastByteInWindow = numseq - 1;
@@ -611,7 +613,10 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
                 respuestaesperadaGBN(recvbuffer, lastByteInWindow, &finRecibido)){
                     canceltimeout();
                     freewindow(ntohl(recvbuffer.next));
-                    printf("El mensaje recibido de servidor es correcto y pide next: %d\n",ntohl(recvbuffer.next));
+                    printf(ANSI_COLOR_BLUE "El mensaje recibido de servidor es correcto y pide next: %d\n" ANSI_COLOR_RESET,ntohl(recvbuffer.next));
+                    printf("El lastByteInWindow que he usado para comparar: %d\n",lastByteInWindow);
+                    printf("Se libera ventana de emisión hasta el next-1 anterior y queda\n");
+                    printvemision();
                     if (finRecibido == TRUE) ultimoMensajeConfirmado = TRUE;
             } 
         }
