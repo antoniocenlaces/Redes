@@ -578,7 +578,6 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
                 ultimoMensaje = TRUE;
                 sendbuffer.flags = F_FIN;
-                printf(ANSI_COLOR_YELLOW "Leido EOF de fichero. LEN: % d NUMSEQ: %d" ANSI_COLOR_RESET,len,numseq);
             }
             // Construye el mensaje a ser enviado
             sendbuffer.numseq=htonl(numseq); 
@@ -592,25 +591,28 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             // Enviar mensaje al servidor.
             // En caso de que vaya a enviar el mensaje de FIN después he de quitar el flag, por si quedaban mensajes en la ventana a ser reenviados
             enviar(socket, sendbuffer, servinfo);
-            if (ultimoMensaje) {
-                lastNumsec = numseq; // Acabo de enviar el último paquete de datos: apunto su secuencia y longitud
-                lastLen = len;
-                //sendbuffer.flags = F_NOFLAGS; // Si quedan mensajes en la vnetana que podrían ser re-enviados, es necesario quitar el falg F_FIN
-                printf(ANSI_COLOR_YELLOW "CONFIRMO EOF. lastLen: % d lastNumsec: %d\n" ANSI_COLOR_RESET,len,numseq);
+            // Siempre apunto el numseq y len de lo que se acaba de enviar
+            // cuando llega EOF entonces len=0 y no debo guardar ese numseq ni ese len
+            if (ultimoMensaje == TRUE) {
+                    sendbuffer.flags = F_NOFLAGS; // Si quedan mensajes en la vnetana que podrían ser re-enviados, es necesario quitar el falg F_FIN
+                    printf(ANSI_COLOR_YELLOW "CONFIRMO EOF. lastLen: % d lastNumsec: %d\n" ANSI_COLOR_RESET,len,numseq);
             }
-            // Con la siguiente condición el falg de FIN se envía solo una vez
-            // if (ultimoMensaje) sendbuffer.flags = F_NOFLAGS;
+            if (ultimoMensaje != TRUE) {
+                lastNumsec = numseq;
+                lastLen = len;
+            } 
+            
             // Hay que buscar la forma de cuando se envía el último mensaje dejar apuntado su len y en qué byte de vemision está
             // de forma que se pueda comparar y al volver a enviar ese mensaje se active de nuevo el flag FIN
             addtimeout();
             // Apuntar mensaje enviado en ventana de emisión
             len2 = addsentdatatowindow((char *)&sendbuffer.buffer,(int)ntohs(sendbuffer.len), &firstByteInWindow);
-            printf(ANSI_COLOR_GREEN "Rutina añadir dice que primer byte es: %d\n" ANSI_COLOR_RESET,firstByteInWindow);
-            printf(ANSI_COLOR_GREEN "Añadido el paquete con numseq: %d con len=%d\n" ANSI_COLOR_RESET "Ventana queda así:\n",numseq,len2);
-            printvemision();
             // Guarda el último valor de numseq que se ha almacenado en ventana
             if (len > 0) lastByteInWindow = numseq + (uint32_t) (len - 1);
                 else lastByteInWindow = numseq - 1;
+            printf(ANSI_COLOR_GREEN "Rutina añadir dice que first: %d, y last: %d\n" ANSI_COLOR_RESET,firstByteInWindow,lastByteInWindow);
+            printf(ANSI_COLOR_GREEN "Añadido el paquete con numseq: %d con len=%d\n" ANSI_COLOR_RESET "Ventana queda así:\n",numseq,len2);
+            printvemision();
             // Siguiente nº de secuencia a enviar será aumentar en len el actual
             numseq += len;
         }
@@ -634,7 +636,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
                     printf(ANSI_COLOR_BLUE "El mensaje recibido de servidor es correcto y pide next: %d\n" ANSI_COLOR_RESET,ntohl(recvbuffer.next));
                     printf(ANSI_COLOR_BLUE "Mis calculos de first: %d y last: %d \n" ANSI_COLOR_RESET, firstByteInWindow,lastByteInWindow);
 
-                    printf("Se libera ventana de emisión hasta el next-1 anterior y queda\n");
+                    printf("LIBERADA ventana de emisión hasta el next-1 anterior y queda\n");
                     printvemision();
             }
             if (recvbuffer.flags & F_FIN) ultimoMensajeConfirmado = TRUE;
@@ -642,13 +644,13 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
         if (timeouts_procesados != timeouts_vencidos) { // Algún timeout ha llegado a su fin: reenvio del mensaje más antiguo en ventana
             if (verb)
                 printf( ANSI_COLOR_RED "\nHa vencido un Timer\n" ANSI_COLOR_RESET);
-            // if ((ultimoMensaje == TRUE) && (firstByteInWindow == lastNumsec)) {
-            //     lenMsgWindow = (int) lastLen;
-            //     sendbuffer.flags = F_FIN;
-            // } else {
-            //     lenMsgWindow = (int) 512;
-            // }
-            lenMsgWindow = (int) 512;
+            if ((ultimoMensaje == TRUE) && (firstByteInWindow == lastNumsec)) {
+                lenMsgWindow = (int) lastLen;
+                sendbuffer.flags = F_FIN;
+            } else {
+                lenMsgWindow = (int) 512;
+            }
+            // lenMsgWindow = (int) 512;
             numseq2 = getdatatoresend((char *) sendbuffer.buffer, &lenMsgWindow);
             if ((ultimoMensaje == TRUE) && (numseq2 == lastNumsec)) printf(ANSI_COLOR_YELLOW "OJOOOOOO---------es está recuperando último paquete de la ventana\n"ANSI_COLOR_RESET);
             printf( ANSI_COLOR_RED "He pedido para recuperar el msg más antiguo en ventana que tiene numseq: %d y len=%d\n" ANSI_COLOR_RESET,numseq2,lenMsgWindow);
