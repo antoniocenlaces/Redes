@@ -539,6 +539,7 @@ void alg_stopwait(int socket, struct addrinfo *servinfo) {
 
 /**************************************************************************/
 /*  algoritmo 3 (ventana deslizante)  */
+/* Con mensajes que siguen la evolución aún con verb=0*/
 /**************************************************************************/
 void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
     struct sockaddr_storage	remote; // Dirección desde donde recibimos
