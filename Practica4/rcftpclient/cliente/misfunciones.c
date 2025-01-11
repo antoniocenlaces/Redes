@@ -630,24 +630,25 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
                 respuestaesperadaGBN(recvbuffer, firstByteInWindow, lastByteInWindow, &finRecibido)){
                     canceltimeout();
                     freewindow(ntohl(recvbuffer.next), &firstByteInWindow);
-                    if (recvbuffer.flags & F_FIN) ultimoMensajeConfirmado = TRUE;
+                    
                     printf(ANSI_COLOR_BLUE "El mensaje recibido de servidor es correcto y pide next: %d\n" ANSI_COLOR_RESET,ntohl(recvbuffer.next));
-                    printf("El lastByteInWindow que he usado para comparar: %d\n",lastByteInWindow);
-                    printf(ANSI_COLOR_BLUE "Rutina borrar ventana dice que primer byte es: %d\n" ANSI_COLOR_RESET,firstByteInWindow);
+                    printf(ANSI_COLOR_BLUE "Mis calculos de first: %d y last: %d \n",ANSI_COLOR_RESET,firstByteInWindow,lastByteInWindow);
+
                     printf("Se libera ventana de emisión hasta el next-1 anterior y queda\n");
                     printvemision();
             }
-            
+            if (recvbuffer.flags & F_FIN) ultimoMensajeConfirmado = TRUE;
         }
         if (timeouts_procesados != timeouts_vencidos) { // Algún timeout ha llegado a su fin: reenvio del mensaje más antiguo en ventana
             if (verb)
                 printf( ANSI_COLOR_RED "\nHa vencido un Timer\n" ANSI_COLOR_RESET);
-            if ((ultimoMensaje == TRUE) && (firstByteInWindow == lastNumsec)) {
-                lenMsgWindow = (int) lastLen;
-                sendbuffer.flags = F_FIN;
-            } else {
-                lenMsgWindow = (int) 512;
-            }
+            // if ((ultimoMensaje == TRUE) && (firstByteInWindow == lastNumsec)) {
+            //     lenMsgWindow = (int) lastLen;
+            //     sendbuffer.flags = F_FIN;
+            // } else {
+            //     lenMsgWindow = (int) 512;
+            // }
+            lenMsgWindow = (int) 512;
             numseq2 = getdatatoresend((char *) sendbuffer.buffer, &lenMsgWindow);
             if ((ultimoMensaje == TRUE) && (numseq2 == lastNumsec)) printf(ANSI_COLOR_YELLOW "OJOOOOOO---------es está recuperando último paquete de la ventana\n"ANSI_COLOR_RESET);
             printf( ANSI_COLOR_RED "He pedido para recuperar el msg más antiguo en ventana que tiene numseq: %d y len=%d\n" ANSI_COLOR_RESET,numseq2,lenMsgWindow);
