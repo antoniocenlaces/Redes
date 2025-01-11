@@ -595,8 +595,8 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             if (ultimoMensaje) {
                 lastNumsec = numseq; // Acabo de enviar el último paquete de datos: apunto su secuencia y longitud
                 lastLen = len;
-                sendbuffer.flags = F_NOFLAGS; // Si quedan mensajes en la vnetana que podrían ser re-enviados, es necesario quitar el falg F_FIN
-                printf(ANSI_COLOR_YELLOW "CONFIRMO EOF. lastLen: % d lastNumsec: %d" ANSI_COLOR_RESET,len,numseq);
+                //sendbuffer.flags = F_NOFLAGS; // Si quedan mensajes en la vnetana que podrían ser re-enviados, es necesario quitar el falg F_FIN
+                printf(ANSI_COLOR_YELLOW "CONFIRMO EOF. lastLen: % d lastNumsec: %d\n" ANSI_COLOR_RESET,len,numseq);
             }
             // Con la siguiente condición el falg de FIN se envía solo una vez
             // if (ultimoMensaje) sendbuffer.flags = F_NOFLAGS;
