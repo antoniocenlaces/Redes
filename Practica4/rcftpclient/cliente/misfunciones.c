@@ -47,6 +47,9 @@ extern char verb;
 // Uso: Comparar con otra variable inicializada a 0; si son distintas, tratar un timeout e incrementar en uno la otra variable
 extern volatile const int timeouts_vencidos;
 
+// Variables para almacenar el número de secuencia del último paquete a enviar y su longitud
+static uint32_t lastNumsec = 0;
+static uint16_t lastLen = 0;
 
 /**************************************************************************/
 /* Obtiene la estructura de direcciones del servidor */
