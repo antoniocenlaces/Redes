@@ -551,7 +551,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
         timeouts_procesados = 0,
         lenMsgWindow = RCFTP_BUFLEN; // Para almacenar la logitud del mensaje a pedir a getdatatoresend
                                      // por defecto será RCFTP_BUFLEN, pero para el último mensaje se ajusta a su longitud
-	uint16_t	len, len2;
+	uint16_t	len=0, len2=0;
     uint32_t    numseq = 0,
                 numseq2,
                 lastByteInWindow = 0,
@@ -574,7 +574,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
     setwindowsize(window);
     // printf("Tamaño de ventana fijado en: %d Bytes\n",window);
     while (ultimoMensajeConfirmado == FALSE) {
-        if (getfreespace() > 0 && !ultimoMensaje){
+        if ((getfreespace() - len) > 0 && !ultimoMensaje){
             len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
             if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
                 ultimoMensaje = TRUE;
