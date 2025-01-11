@@ -591,6 +591,11 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             // Enviar mensaje al servidor.
             // En caso de que vaya a enviar el mensaje de FIN después he de quitar el flag, por si quedaban mensajes en la ventana a ser reenviados
             enviar(socket, sendbuffer, servinfo);
+            if (ultimoMensaje) {
+                lastNumsec = numseq; // Acabo de enviar el último paquete de datos: apunto su secuencia y longitud
+                lastLen = len;
+                sendbuffer.flags = F_NOFLAGS; // Si quedan mensajes en la vnetana que podrían ser re-enviados, es necesario quitar el falg F_FIN
+            }
             // Con la siguiente condición el falg de FIN se envía solo una vez
             // if (ultimoMensaje) sendbuffer.flags = F_NOFLAGS;
             // Hay que buscar la forma de cuando se envía el último mensaje dejar apuntado su len y en qué byte de vemision está
