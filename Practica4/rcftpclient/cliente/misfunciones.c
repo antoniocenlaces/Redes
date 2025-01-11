@@ -574,7 +574,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
     setwindowsize(window);
     // printf("Tamaño de ventana fijado en: %d Bytes\n",window);
     while (ultimoMensajeConfirmado == FALSE) {
-        if ((getfreespace() - len) > 0 && !ultimoMensaje){
+        if (getfreespace() > 0 && !ultimoMensaje){
             len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
             if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
                 ultimoMensaje = TRUE;
@@ -608,6 +608,11 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             addtimeout();
             // Apuntar mensaje enviado en ventana de emisión
             len2 = addsentdatatowindow((char *)&sendbuffer.buffer,(int)ntohs(sendbuffer.len), &firstByteInWindow);
+            if (len2 != ntohs(sendbuffer.len)) {
+                fprintf(stderr,"Mensaje almacenado en ventana NO tiene la longitud requerida\n");
+                fprintf(stderr,"len requerida: %d; len almacenada: %d; espacio libre en ventana: %d",len,len2,getfreespace());
+                exit(1);
+            }
             // Guarda el último valor de numseq que se ha almacenado en ventana
             if (len > 0) lastByteInWindow = numseq + (uint32_t) (len - 1);
                 else lastByteInWindow = numseq - 1;
