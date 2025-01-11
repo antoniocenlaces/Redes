@@ -632,7 +632,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
                 respuestaesperadaGBN(recvbuffer, firstByteInWindow, lastByteInWindow, &finRecibido)){
                     canceltimeout();
                     freewindow(ntohl(recvbuffer.next), &firstByteInWindow);
-                    
+                    if (firstByteInWindow > lastByteInWindow)  lastByteInWindow = firstByteInWindow;
                     printf(ANSI_COLOR_BLUE "El mensaje recibido de servidor es correcto y pide next: %d\n" ANSI_COLOR_RESET,ntohl(recvbuffer.next));
                     printf(ANSI_COLOR_BLUE "Mis calculos de first: %d y last: %d \n" ANSI_COLOR_RESET, firstByteInWindow,lastByteInWindow);
 
