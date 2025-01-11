@@ -639,8 +639,14 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
         if (timeouts_procesados != timeouts_vencidos) { // Algún timeout ha llegado a su fin: reenvio del mensaje más antiguo en ventana
             if (verb)
                 printf( ANSI_COLOR_RED "\nHa vencido un Timer\n" ANSI_COLOR_RESET);
-            lenMsgWindow = (int) 512;
+            if (ultimoMensaje && firstByteInWindow == lastNumsec) {
+                lenMsgWindow = (int) lastLen;
+                sendbuffer.flags = F_FIN;
+            } else {
+                lenMsgWindow = (int) 512;
+            }
             numseq2 = getdatatoresend((char *) sendbuffer.buffer, &lenMsgWindow);
+            if (ultimoMensaje && numseq2 == lastNumsec) printf(ANSI_COLOR_YELLOW "OJOOOOOO---------es está recuperando último paquete de la ventana\n"ANSI_COLOR_RESET);
             printf( ANSI_COLOR_RED "He pedido para recuperar el msg más antiguo en ventana que tiene numseq: %d y len=%d\n" ANSI_COLOR_RESET,numseq2,lenMsgWindow);
              // Construye el mensaje a ser enviado
             sendbuffer.numseq=htonl(numseq2); 
