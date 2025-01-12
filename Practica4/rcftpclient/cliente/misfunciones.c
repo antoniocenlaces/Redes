@@ -676,11 +676,12 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
                 //sendbuffer.flags = F_FIN;
 printf(ANSI_COLOR_MAGENTA "EOF leido y además recuperando msg de window con inicio en byte %d\n" ANSI_COLOR_RESET,firstByteInWindow);
 // printf(ANSI_COLOR_MAGENTA "Además F_FIN activado\n" ANSI_COLOR_RESET);
-printf(ANSI_COLOR_MAGENTA "lastNumseq: %d; lastLen: %d\n" ANSI_COLOR_RESET,lastNumsec,lastLen);
+printf(ANSI_COLOR_MAGENTA "lastNumseq: %d; lastLen: %d; ultimoMensaje: %d\n" ANSI_COLOR_RESET,lastNumsec,lastLen,(int)ultimoMensaje);
             } else {
                 lenMsgWindow = RCFTP_BUFLEN;
             }
             numseq2 = getdatatoresend((char *) sendbuffer.buffer, &lenMsgWindow);
+            printf(ANSI_COLOR_MAGENTA "numseq2 recuperado: %d\n" ANSI_COLOR_RESET, numseq2);
             if((ultimoMensaje == TRUE) && (numseq2 == (lastNumsec+lastLen))) sendbuffer.flags = F_FIN;
             // if ((ultimoMensaje == TRUE) && (numseq2 == lastNumsec)) printf(ANSI_COLOR_YELLOW "OJOOOOOO---------es está recuperando último paquete de la ventana\n"ANSI_COLOR_RESET);
             // printf( ANSI_COLOR_RED "He pedido para recuperar el msg más antiguo en ventana que tiene numseq: %d y len=%d\n" ANSI_COLOR_RESET,numseq2,lenMsgWindow);
