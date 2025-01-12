@@ -25,7 +25,6 @@
 #include "rcftpclient.h"
 #include "multialarm.h"
 #include "misfunciones.h"
-#include "vemision.h"
 
 
 /**************************************************************************/
@@ -286,8 +285,8 @@ void initargs(int argc, char **argv, char *verb, int* alg, unsigned int* window,
 		exit(1);
     }
 	// RCFTP_BUFLEN
-	else if (*window<=0 || *window>MAXVEMISION) {
-		fprintf(stderr,"Ventana no especificada correctamente. Minimo=1; Máximo=%d\n",MAXVEMISION);
+	else if (*window<=0) {
+		fprintf(stderr,"Ventana no especificada correctamente. Minimo=1; Máximo=MAXVEMISION\n");
 		printuso(progname);
 		exit(1);
     }

@@ -5,7 +5,6 @@
 /* recomienda modificar solamente este fichero y su fichero de cabeceras asociado. */
 /****************************************************************************/
 /*Notas del autor*/
-/*Modificado filtro en tamaño de window en rcftpclient.c para que esté siempre entre RCFTP_BUFLEN y MAXVEMISION*/
 /*Respuestas del servidor con next que no sea múltiplo de RCFTP_BUFLEN son ignoradas*/
 /**************************************************************************/
 /* INCLUDES                                                               */
