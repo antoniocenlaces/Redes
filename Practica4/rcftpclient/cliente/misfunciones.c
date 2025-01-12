@@ -682,7 +682,7 @@ printf(ANSI_COLOR_MAGENTA "lastNumseq: %d; lastLen: %d; ultimoMensaje: %d\n" ANS
             }
             numseq2 = getdatatoresend((char *) sendbuffer.buffer, &lenMsgWindow);
             printf(ANSI_COLOR_MAGENTA "numseq2 recuperado: %d\n" ANSI_COLOR_RESET, numseq2);
-            if((ultimoMensaje == TRUE) && (numseq2 == (lastNumsec+lastLen))) sendbuffer.flags = F_FIN;
+            // if((ultimoMensaje == TRUE) && (numseq2 == (lastNumsec+lastLen))) sendbuffer.flags = F_FIN;
             // if ((ultimoMensaje == TRUE) && (numseq2 == lastNumsec)) printf(ANSI_COLOR_YELLOW "OJOOOOOO---------es está recuperando último paquete de la ventana\n"ANSI_COLOR_RESET);
             // printf( ANSI_COLOR_RED "He pedido para recuperar el msg más antiguo en ventana que tiene numseq: %d y len=%d\n" ANSI_COLOR_RESET,numseq2,lenMsgWindow);
              // Construye el mensaje a ser enviado
@@ -694,7 +694,17 @@ printf(ANSI_COLOR_MAGENTA "lastNumseq: %d; lastLen: %d; ultimoMensaje: %d\n" ANS
             enviar(socket, sendbuffer, servinfo);
             addtimeout();
             timeouts_procesados++;
-            
+            if((ultimoMensaje == TRUE) && (numseq2 == lastNumsec)) { // Último mensaje enviado, ahora hay que volver a enviar F_FIN al servidor
+                sendbuffer.flags = F_FIN;
+                sendbuffer.numseq=htonl(lastNumsec+lastLen);
+                sendbuffer.len=htons(0);
+                sendbuffer.sum=0;
+                sendbuffer.sum=xsum((char*)&sendbuffer,sizeof(sendbuffer));
+                enviar(socket, sendbuffer, servinfo);
+                addtimeout();
+                timeouts_procesados++;
+                sendbuffer.flags = F_NOFLAGS; // Y vuelvo a quitar el F_FIN por si hay que enviar otros mensajes anteriores
+            }            
         }
     }
 }
