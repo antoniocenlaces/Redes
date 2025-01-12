@@ -576,7 +576,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
     while (ultimoMensajeConfirmado == FALSE) {
         printf("En bucle While: %d. getfreespace=%d; len=%d\n",contador,getfreespace(),len);
         contador++;
-        if ((getfreespace() - len) > 0 && !ultimoMensaje){
+        if ((getfreespace() - len) >= 0 && !ultimoMensaje){
             len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
             if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
                 ultimoMensaje = TRUE;
