@@ -545,17 +545,17 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
     struct sockaddr_storage	remote; // Dirección desde donde recibimos
     socklen_t remotelen;
 	char ultimoMensaje = FALSE; // TRUE: no hay nada más a leer de entrada estandard; FALSE: aún quedan datos por leer
-	char ultimoMensajeConfirmado = FALSE;
+	char ultimoMensajeConfirmado = FALSE; // Usado para terminar el bucle de envío de datos al servidor
     int sockflags,
         timeouts_procesados = 0,
         lenMsgWindow = RCFTP_BUFLEN; // Para almacenar la logitud del mensaje a pedir a getdatatoresend
                                      // por defecto será RCFTP_BUFLEN, pero para el último mensaje se ajusta a su longitud
-	uint16_t	len=0, len2=0;
-    uint32_t    numseq = 0,
+	uint16_t	len=0, len2=0; // Longitud del mensaje leído de entrada estandard y longitud devuelta por addsentdatatowindow
+    uint32_t    numseq = 0, // Número de secuencia del primer byte leido de stdin
                 numseq2,
-                lastByteInWindow = 0,
-                firstByteInWindow = 0;
-	struct rcftp_msg	sendbuffer,
+                lastByteInWindow = 0, // Control dentro del bucle de envío de cuál es el último byte almacenado en ventana, referido a los bytes del mensaje
+                firstByteInWindow = 0; // Control dentro del bucle de envío de cuál es el primer byte almacenado en ventana, referido a los bytes del mensaje
+	struct rcftp_msg	sendbuffer, // estructuras de datos para enviar y recibir
                         recvbuffer;
     ssize_t     recvbytes;
 	printf("Comunicación con algoritmo go-back-n\n");
@@ -572,7 +572,13 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
     // Establece el tamaño de la ventana de emisión en bytes
     setwindowsize(window);
     while (ultimoMensajeConfirmado == FALSE) {
-        if ((getfreespace() - len) >= 0 && ultimoMensaje == FALSE){
+        // BLOQUE de Envío
+        if ((getfreespace() - len) >= 0 && ultimoMensaje == FALSE){ // Si hay espacio en ventana para un paquete del mensaje
+                                                                    // se inicia la lectura de stdin, el envío a servidor y almacenamiento
+                                                                    // del paquete leido en ventana. La primera vez len=0
+                                                                    // Cuando los bytes totales (tamaño fichero) a enviar es menor que RCFTP_BUFLEN
+                                                                    // se puede especificar una ventana < RCFTP_BUFLEN pero >=nº de bytes totales a enviar
+                                                                    // Lo normal es que la ventana (window) sea >= RCFTP_BUFLEN
             len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
             if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
                 ultimoMensaje = TRUE;
@@ -587,7 +593,6 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             
             // en este punto siguiente mensaje "correcto" está listo
             // Enviar mensaje al servidor.
-            // En caso de que vaya a enviar el mensaje de FIN después he de quitar el flag, por si quedaban mensajes en la ventana a ser reenviados
             enviar(socket, sendbuffer, servinfo);
             // Siempre apunto el numseq y len de lo que se acaba de enviar
             // cuando llega EOF entonces len=0 y no debo guardar ese numseq ni ese len
@@ -598,9 +603,6 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
                 lastNumsec = numseq;
                 lastLen = len;
             } 
-            
-            // Hay que buscar la forma de cuando se envía el último mensaje dejar apuntado su len y en qué byte de vemision está
-            // de forma que se pueda comparar y al volver a enviar ese mensaje se active de nuevo el flag FIN
             addtimeout();
             // Apuntar mensaje enviado en ventana de emisión
             len2 = addsentdatatowindow((char *)&sendbuffer.buffer,(int)ntohs(sendbuffer.len), &firstByteInWindow);
@@ -612,18 +614,10 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             // Guarda el último valor de numseq que se ha almacenado en ventana
             if (len > 0) lastByteInWindow = numseq + (uint32_t) (len - 1);
                 else lastByteInWindow = numseq - 1;
-            // printf(ANSI_COLOR_GREEN "Rutina añadir dice que first: %d, y last: %d\n" ANSI_COLOR_RESET,firstByteInWindow,lastByteInWindow);
-            // printf(ANSI_COLOR_GREEN "Añadido el paquete con numseq: %d con len=%d\n" ANSI_COLOR_RESET "Ventana queda así:\n",numseq,len2);
-            // printvemision();
             // Siguiente nº de secuencia a enviar será aumentar en len el actual
             numseq += len;
-            // if (ultimoMensaje == TRUE){
-            //     printf(ANSI_COLOR_MAGENTA "Se ha leido todo el contenido del fichero.\n" ANSI_COLOR_RESET);
-            //     printf(ANSI_COLOR_MAGENTA "El último mensaje que habrá que enviar tendrá numseq: %d y len: %d\n" ANSI_COLOR_RESET,lastNumsec,lastLen);
-            // }
         }
-
-        // printf( ANSI_COLOR_RED "\n\t En Bucle de espera nº: %d\n" ANSI_COLOR_RESET, contador);
+        // BLOQUE Recepción
         recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
         if (recvbytes > 0) { //== sizeof(struct rcftp_msg)
             // printf( ANSI_COLOR_BLUE "\n\t\t En Bucle de espera he recibido algo coherente:\n" ANSI_COLOR_RESET);
@@ -642,7 +636,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             }
             if (recvbuffer.flags & F_FIN) ultimoMensajeConfirmado = TRUE;
         }
-
+        // BLOQUE repetición de envío en caso de timeouts vencidos
         if (timeouts_procesados != timeouts_vencidos) { // Algún timeout ha llegado a su fin: reenvio del mensaje más antiguo en ventana
             if (verb)
                 printf( ANSI_COLOR_RED "\nHa vencido un Timer\n" ANSI_COLOR_RESET);
