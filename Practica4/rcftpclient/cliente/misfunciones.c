@@ -547,6 +547,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
 	char ultimoMensaje = FALSE; // TRUE: no hay nada más a leer de entrada estandard; FALSE: aún quedan datos por leer
 	char ultimoMensajeConfirmado = FALSE;
     char finRecibido = FALSE;
+    char leido;
     int sockflags,
         timeouts_procesados = 0,
         lenMsgWindow = RCFTP_BUFLEN; // Para almacenar la logitud del mensaje a pedir a getdatatoresend
@@ -621,7 +622,11 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             // Siguiente nº de secuencia a enviar será aumentar en len el actual
             numseq += len;
         }
-
+if (ultimoMensaje == TRUE){
+    printf("Se ha leido todo el contenido del fichero.\n");
+    printf("El último mensaje que habrá que enviar tendrá numseq: %d y len: %d\n",lastNumsec,len);
+    getchar();
+}
         // printf( ANSI_COLOR_RED "\n\t En Bucle de espera nº: %d\n" ANSI_COLOR_RESET, contador);
         recvbytes = recibir(socket,&recvbuffer,sizeof(recvbuffer),&remote,&remotelen);
         if (recvbytes > 0) { //== sizeof(struct rcftp_msg)
@@ -651,6 +656,9 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             if ((ultimoMensaje == TRUE) && (firstByteInWindow == lastNumsec)) {
                 lenMsgWindow = (int) lastLen;
                 sendbuffer.flags = F_FIN;
+printf("EOF leido y además recuperando msg de window con inicio en byte %d\n",firstByteInWindow);
+printf("Además F_FIN activado\n");
+getchar();
             } else {
                 lenMsgWindow = RCFTP_BUFLEN;
             }
