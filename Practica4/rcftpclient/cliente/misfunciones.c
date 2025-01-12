@@ -639,9 +639,8 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
                     canceltimeout();
                     freewindow(ntohl(recvbuffer.next), &firstByteInWindow);
                     if (firstByteInWindow > lastByteInWindow)  lastByteInWindow = firstByteInWindow;
-                    if (recvbuffer.flags & F_FIN) ultimoMensajeConfirmado = TRUE;
             }
-            
+            if (recvbuffer.flags & F_FIN) ultimoMensajeConfirmado = TRUE;
         }
 
         if (timeouts_procesados != timeouts_vencidos) { // Algún timeout ha llegado a su fin: reenvio del mensaje más antiguo en ventana
