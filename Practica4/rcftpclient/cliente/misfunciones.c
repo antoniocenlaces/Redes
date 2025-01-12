@@ -546,7 +546,6 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
     socklen_t remotelen;
 	char ultimoMensaje = FALSE; // TRUE: no hay nada más a leer de entrada estandard; FALSE: aún quedan datos por leer
 	char ultimoMensajeConfirmado = FALSE;
-    char finRecibido = FALSE;
     int sockflags,
         timeouts_procesados = 0,
         lenMsgWindow = RCFTP_BUFLEN; // Para almacenar la logitud del mensaje a pedir a getdatatoresend
@@ -636,13 +635,13 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             // mesajevalido() comprueba versión y checksum
 
             if (mensajevalido(recvbuffer) &&
-                respuestaesperadaGBN(recvbuffer, firstByteInWindow, lastByteInWindow, &finRecibido)){
+                respuestaesperadaGBN(recvbuffer, firstByteInWindow, lastByteInWindow)){
                     canceltimeout();
                     freewindow(ntohl(recvbuffer.next), &firstByteInWindow);
                     if (firstByteInWindow > lastByteInWindow)  lastByteInWindow = firstByteInWindow;
-                    // if(finRecibido == TRUE) ultimoMensajeConfirmado = TRUE;
+                    if (recvbuffer.flags & F_FIN) ultimoMensajeConfirmado = TRUE;
             }
-            if (recvbuffer.flags & F_FIN) ultimoMensajeConfirmado = TRUE;
+            
         }
 
         if (timeouts_procesados != timeouts_vencidos) { // Algún timeout ha llegado a su fin: reenvio del mensaje más antiguo en ventana
@@ -730,7 +729,7 @@ int respuestaesperada(struct rcftp_msg recvbuffer, uint32_t numseq, char ultimoM
 /**************************************************************************/
 /* Verifica numero de secuencia, flags */
 /**************************************************************************/
-int respuestaesperadaGBN(struct rcftp_msg recvbuffer, uint32_t firstByteInWindow, uint32_t lastByteInWindow, char *finRecibido) {
+int respuestaesperadaGBN(struct rcftp_msg recvbuffer, uint32_t firstByteInWindow, uint32_t lastByteInWindow) {
     int esperado = 1;
     // printf(ANSI_COLOR_RED "Desde REGBN---------\n"ANSI_COLOR_RESET);
     // printf("Los valores para comparar son firstByteInWindow: %d, lastByteInWindow %d\n",firstByteInWindow,lastByteInWindow);
@@ -751,11 +750,6 @@ int respuestaesperadaGBN(struct rcftp_msg recvbuffer, uint32_t firstByteInWindow
         // exit(1);
         esperado = 0;
     }
-
-    // if (recvbuffer.flags & F_FIN)  *finRecibido = TRUE;
-        if(esperado && (ntohl(recvbuffer.next)==(lastNumsec+lastLen))) *finRecibido = TRUE;
- 
-    // printf(ANSI_COLOR_RED "Fin de REGBN---------  con esperado= %d \n" ANSI_COLOR_RESET,esperado);
-    
+       
     return esperado;
 }
