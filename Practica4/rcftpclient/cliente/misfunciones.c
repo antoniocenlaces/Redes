@@ -675,7 +675,8 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
                 lenMsgWindow = (int) lastLen;
                 //sendbuffer.flags = F_FIN;
 printf(ANSI_COLOR_MAGENTA "EOF leido y además recuperando msg de window con inicio en byte %d\n" ANSI_COLOR_RESET,firstByteInWindow);
-printf(ANSI_COLOR_MAGENTA "Además F_FIN activado\n" ANSI_COLOR_RESET);
+// printf(ANSI_COLOR_MAGENTA "Además F_FIN activado\n" ANSI_COLOR_RESET);
+printf(ANSI_COLOR_MAGENTA "lastNumseq: %d; lastLen: %d\n" ANSI_COLOR_RESET,lastNumsec,lastLen);
             } else {
                 lenMsgWindow = RCFTP_BUFLEN;
             }
