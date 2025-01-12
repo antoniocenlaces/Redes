@@ -285,8 +285,8 @@ void initargs(int argc, char **argv, char *verb, int* alg, unsigned int* window,
 		printuso(progname);
 		exit(1);    	
     }
-	else if (*window<=0 || *window>MAXVEMISION) {
-		fprintf(stderr,"Ventana no especificada correctamente. Minimo=0; Máximo=%d\n",MAXVEMISION);
+	else if (*window<RCFTP_BUFLEN || *window>MAXVEMISION) {
+		fprintf(stderr,"Ventana no especificada correctamente. Minimo=%d; Máximo=%d\n",RCFTP_BUFLEN,MAXVEMISION);
 		printuso(progname);
 		exit(1);    	
     }
