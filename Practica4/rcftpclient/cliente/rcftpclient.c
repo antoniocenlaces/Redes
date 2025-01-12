@@ -226,7 +226,7 @@ void initargs(int argc, char **argv, char *verb, int* alg, unsigned int* window,
     if (argc<2) {
 		fprintf(stderr,"Número de párametros incorrecto\n");
 		printuso(progname);
-		exit(1);   	
+		exit(1);
     }
     for(argc--,argv++; argc > 0; argc--,argv++) {
     	if (**argv == '-') {
@@ -273,37 +273,38 @@ void initargs(int argc, char **argv, char *verb, int* alg, unsigned int* window,
     if (*port==NULL) {
 		fprintf(stderr,"Puerto no especificado\n");
 		printuso(progname);
-		exit(1);    	
+		exit(1);
     }
 	else if (*dest==NULL) {
 		fprintf(stderr,"Destino no especificado\n");
 		printuso(progname);
-		exit(1);    	
+		exit(1);
     }
 	else if (*alg==0) {
 		fprintf(stderr,"Algoritmo no especificado correctamente\n");
 		printuso(progname);
-		exit(1);    	
+		exit(1);
     }
-	else if (*window<RCFTP_BUFLEN || *window>MAXVEMISION) {
-		fprintf(stderr,"Ventana no especificada correctamente. Minimo=%d; Máximo=%d\n",RCFTP_BUFLEN,MAXVEMISION);
+	// RCFTP_BUFLEN
+	else if (*window<=0 || *window>MAXVEMISION) {
+		fprintf(stderr,"Ventana no especificada correctamente. Minimo=1; Máximo=%d\n",MAXVEMISION);
 		printuso(progname);
-		exit(1);    	
+		exit(1);
     }
 	else if	(*ttrans==0) {
 		fprintf(stderr,"Tiempo de transmisión no especificado correctamente\n");
 		printuso(progname);
-		exit(1);    	
+		exit(1);
     }
 	else if	(*timeout==0) {
 		fprintf(stderr,"Tiempo de expiración no especificado correctamente\n");
 		printuso(progname);
-		exit(1);    	
+		exit(1);
     }
 
 	if (*verb) {
 		fprintf(stderr,"Valores de parámetros: a=%d, w=%d, tt=%ld, T=%ld, d=%s, p=%s\n",*alg,*window,*ttrans,*timeout,*dest,*port);
-	}	
+	}
 }
 
 

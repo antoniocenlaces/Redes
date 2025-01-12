@@ -4,7 +4,9 @@
 /* Aunque se permite la modificación de cualquier parte del código, se */
 /* recomienda modificar solamente este fichero y su fichero de cabeceras asociado. */
 /****************************************************************************/
-
+/*Notas del autor*
+/*Modificado filtro en tamaño de window en rcftpclient.c para que esté siempre entre RCFTP_BUFLEN y MAXVEMISION*/
+/*Respuestas del servidor con next que no sea múltiplo de RCFTP_BUFLEN son ignoradas*/
 /**************************************************************************/
 /* INCLUDES                                                               */
 /**************************************************************************/
@@ -547,7 +549,6 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
 	char ultimoMensajeConfirmado = FALSE;
     char finRecibido = FALSE;
     int sockflags,
-        contador = 0,
         timeouts_procesados = 0,
         lenMsgWindow = RCFTP_BUFLEN; // Para almacenar la logitud del mensaje a pedir a getdatatoresend
                                      // por defecto será RCFTP_BUFLEN, pero para el último mensaje se ajusta a su longitud
@@ -572,10 +573,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
     sendbuffer.version=RCFTP_VERSION_1;
     // Establece el tamaño de la ventana de emisión en bytes
     setwindowsize(window);
-    // printf("Tamaño de ventana fijado en: %d Bytes\n",window);
     while (ultimoMensajeConfirmado == FALSE) {
-        printf("En bucle While: %d. getfreespace=%d; len=%d\n",contador,getfreespace(),len);
-        contador++;
         if ((getfreespace() - len) >= 0 && !ultimoMensaje){
             len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
             if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
@@ -641,10 +639,10 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
                     canceltimeout();
                     freewindow(ntohl(recvbuffer.next), &firstByteInWindow);
                     if (firstByteInWindow > lastByteInWindow)  lastByteInWindow = firstByteInWindow;
-                    printf(ANSI_COLOR_BLUE "El mensaje recibido de servidor es correcto y pide next: %d\n" ANSI_COLOR_RESET,ntohl(recvbuffer.next));
-                    printf(ANSI_COLOR_BLUE "Mis calculos de first: %d y last: %d \n" ANSI_COLOR_RESET, firstByteInWindow,lastByteInWindow);
-                    printf("LIBERADA ventana de emisión hasta el next-1 anterior y queda\n");
-                    printvemision();
+                    // printf(ANSI_COLOR_BLUE "El mensaje recibido de servidor es correcto y pide next: %d\n" ANSI_COLOR_RESET,ntohl(recvbuffer.next));
+                    // printf(ANSI_COLOR_BLUE "Mis calculos de first: %d y last: %d \n" ANSI_COLOR_RESET, firstByteInWindow,lastByteInWindow);
+                    // printf("LIBERADA ventana de emisión hasta el next-1 anterior y queda\n");
+                    // printvemision();
             }
             if (recvbuffer.flags & F_FIN) ultimoMensajeConfirmado = TRUE;
         }
