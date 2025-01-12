@@ -547,7 +547,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
 	char ultimoMensaje = FALSE; // TRUE: no hay nada más a leer de entrada estandard; FALSE: aún quedan datos por leer
 	char ultimoMensajeConfirmado = FALSE;
     char finRecibido = FALSE;
-    char leido;
+    int leido;
     int sockflags,
         timeouts_procesados = 0,
         lenMsgWindow = RCFTP_BUFLEN; // Para almacenar la logitud del mensaje a pedir a getdatatoresend
@@ -626,7 +626,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
                 printf("El último mensaje que habrá que enviar tendrá numseq: %d y len: %d\n",lastNumsec,lastLen);
                 do
                     leido=getchar();
-                while (leido != 'a');
+                while (leido != (int)'a');
             }
         }
 
@@ -663,7 +663,7 @@ printf("EOF leido y además recuperando msg de window con inicio en byte %d\n",f
 printf("Además F_FIN activado\n");
 do
     leido=getchar();
-while (leido != 'a');
+while (leido != (int)'a');
             } else {
                 lenMsgWindow = RCFTP_BUFLEN;
             }
