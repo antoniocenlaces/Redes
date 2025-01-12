@@ -309,30 +309,30 @@ void initargs(int argc, char **argv, char *verb, int* alg, unsigned int* window,
 /**************************************************************************/
 /*  imprime direccion */
 /**************************************************************************/
-void print_peer(struct sockaddr_storage * caddr) {
-	struct sockaddr_in * caddr_ipv4;
-	struct sockaddr_in6 * caddr_ipv6;
-	void *addr;
-	char *ipver, ipstr[INET6_ADDRSTRLEN];
-	unsigned short port;
+// void print_peer(struct sockaddr_storage * caddr) {
+// 	struct sockaddr_in * caddr_ipv4;
+// 	struct sockaddr_in6 * caddr_ipv6;
+// 	void *addr;
+// 	char *ipver, ipstr[INET6_ADDRSTRLEN];
+// 	unsigned short port;
 	
-	if (caddr->ss_family== AF_INET) {//IPv4
-        caddr_ipv4=((struct sockaddr_in *)((struct sockaddr *)caddr));
-        addr = &(caddr_ipv4->sin_addr);
-        port = ntohs(caddr_ipv4->sin_port); 
-        ipver = "IPv4";
-        }else if (caddr->ss_family== AF_INET6) {//IPv6
-        caddr_ipv6=((struct sockaddr_in6 *)((struct sockaddr *)caddr));
-        addr = &(caddr_ipv6->sin6_addr);
-        port = ntohs(caddr_ipv6->sin6_port);
-        ipver = "IPv6";
-        }else{
-        fprintf(stderr, "Error: protocolo desconocido");
-        exit(1);
-    }
-    //convierte la ip a una string y la imprime
-    inet_ntop(caddr->ss_family, addr, ipstr, sizeof ipstr);
-    printf("Comunicación con el equipo %s usando %s a través del puerto %d\n", ipstr,ipver,port);
-    return;
-}
+// 	if (caddr->ss_family== AF_INET) {//IPv4
+//         caddr_ipv4=((struct sockaddr_in *)((struct sockaddr *)caddr));
+//         addr = &(caddr_ipv4->sin_addr);
+//         port = ntohs(caddr_ipv4->sin_port); 
+//         ipver = "IPv4";
+//         }else if (caddr->ss_family== AF_INET6) {//IPv6
+//         caddr_ipv6=((struct sockaddr_in6 *)((struct sockaddr *)caddr));
+//         addr = &(caddr_ipv6->sin6_addr);
+//         port = ntohs(caddr_ipv6->sin6_port);
+//         ipver = "IPv6";
+//         }else{
+//         fprintf(stderr, "Error: protocolo desconocido");
+//         exit(1);
+//     }
+//     //convierte la ip a una string y la imprime
+//     inet_ntop(caddr->ss_family, addr, ipstr, sizeof ipstr);
+//     printf("Comunicación con el equipo %s usando %s a través del puerto %d\n", ipstr,ipver,port);
+//     return;
+// }
 
