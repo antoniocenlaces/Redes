@@ -576,7 +576,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
     while (ultimoMensajeConfirmado == FALSE) {
         if ((getfreespace() - len) >= 0 && ultimoMensaje == FALSE){
             len = leeDeEntradaEstandard((char *) sendbuffer.buffer, RCFTP_BUFLEN);
-            if (len == 0) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
+            if (len == 0 || len < RCFTP_BUFLEN) { // Si se ha acabado el fichero enviamos flag F_FIN al servidor
                 ultimoMensaje = TRUE;
                 sendbuffer.flags = F_FIN;
             }
@@ -598,7 +598,7 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
                     sendbuffer.flags = F_NOFLAGS; // Si quedan mensajes en la vnetana que podrían ser re-enviados, es necesario quitar el falg F_FIN
                     // printf(ANSI_COLOR_YELLOW "CONFIRMO EOF. lastLen: % d lastNumsec: %d\n" ANSI_COLOR_RESET,len,numseq);
             }
-            if (ultimoMensaje == FALSE) {
+            if (len > 0) {
                 lastNumsec = numseq;
                 lastLen = len;
             } 
