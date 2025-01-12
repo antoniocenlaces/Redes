@@ -624,9 +624,6 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             if (ultimoMensaje == TRUE){
                 printf("Se ha leido todo el contenido del fichero.\n");
                 printf("El último mensaje que habrá que enviar tendrá numseq: %d y len: %d\n",lastNumsec,lastLen);
-                do
-                    leido=getchar();
-                while (leido != (int)'a');
             }
         }
 
@@ -659,11 +656,8 @@ void alg_ventana(int socket, struct addrinfo *servinfo,int window) {
             if ((ultimoMensaje == TRUE) && (firstByteInWindow == lastNumsec)) {
                 lenMsgWindow = (int) lastLen;
                 sendbuffer.flags = F_FIN;
-printf("EOF leido y además recuperando msg de window con inicio en byte %d\n",firstByteInWindow);
-printf("Además F_FIN activado\n");
-do
-    leido=getchar();
-while (leido != (int)'a');
+printf(ANSI_COLOR_MAGENTA "EOF leido y además recuperando msg de window con inicio en byte %d\n" ANSI_COLOR_RESET,firstByteInWindow);
+printf(ANSI_COLOR_MAGENTA "Además F_FIN activado\n" ANSI_COLOR_RESET);
             } else {
                 lenMsgWindow = RCFTP_BUFLEN;
             }
