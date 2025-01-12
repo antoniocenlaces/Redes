@@ -286,7 +286,7 @@ void initargs(int argc, char **argv, char *verb, int* alg, unsigned int* window,
 		exit(1);    	
     }
 	else if (*window<=0 || *window>MAXVEMISION) {
-		fprintf(stderr,"Ventana no especificada correctamente\n");
+		fprintf(stderr,"Ventana no especificada correctamente. Minimo=0; Máximo=%d\n",MAXVEMISION);
 		printuso(progname);
 		exit(1);    	
     }
